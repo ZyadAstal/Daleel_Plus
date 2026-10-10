@@ -1,30 +1,69 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:daleel_plus/main.dart';
+import 'package:daleel_plus/app/app.dart';
+import 'package:daleel_plus/app/app_router.dart';
+import 'package:daleel_plus/app/app_theme.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('Daleel+ Foundation & Routing Infrastructure Tests', () {
+    testWidgets('DaleelApp boots and renders Scaffold on initial route', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(const DaleelApp());
+      await tester.pumpAndSettle();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      expect(find.byType(Scaffold), findsOneWidget);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('All required feature named routes generate valid routes', () {
+      final routesToVerify = [
+        AppRoutes.initial,
+        AppRoutes.login,
+        AppRoutes.register,
+        AppRoutes.accountType,
+        AppRoutes.profileSetup,
+        AppRoutes.interests,
+        AppRoutes.discovery,
+        AppRoutes.search,
+        AppRoutes.education,
+        AppRoutes.libraries,
+        AppRoutes.jobs,
+        AppRoutes.tutors,
+        AppRoutes.notifications,
+      ];
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      for (final routeName in routesToVerify) {
+        final route = AppRouter.onGenerateRoute(RouteSettings(name: routeName));
+
+        expect(
+          route,
+          isA<MaterialPageRoute>(),
+          reason: 'Route "$routeName" should generate a MaterialPageRoute',
+        );
+      }
+    });
+
+    test('Unknown routes generate a valid fallback route', () {
+      final route = AppRouter.onGenerateRoute(
+        const RouteSettings(name: '/non-existent-route'),
+      );
+
+      expect(route, isA<MaterialPageRoute>());
+    });
+
+    testWidgets('AppTheme is applied to MaterialApp', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(const DaleelApp());
+      await tester.pumpAndSettle();
+
+      final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
+      expect(materialApp.theme?.useMaterial3, isTrue);
+      expect(
+        materialApp.theme?.colorScheme.primary,
+        equals(AppTheme.primaryColor),
+      );
+    });
   });
 }
