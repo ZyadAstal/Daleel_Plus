@@ -101,8 +101,3 @@ Daleel_Plus/
 - Each screen has its own controller (GetX) when it needs state.
 - File names use `snake_case` (e.g. `provider_dashboard_screen.dart`).
 ---
-
-## 👩‍💻 Developer
-
-**Alshimaa Alnajjar**: Front-End / Flutter Developer
-[LinkedIn](https://www.linkedin.com/in/alshimaa-alnajjar-a81914292)
