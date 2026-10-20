@@ -1,3 +1,8 @@
+# Firebase configuration files
+GoogleService-Info.plist
+google-services.json
+
+# General
 *.class
 *.log
 *.pyc
@@ -11,10 +16,12 @@
 .swiftpm/
 migrate_working_dir/
 
+# Windows
 Thumbs.db
 ehthumbs.db
 desktop.ini
 
+# Environment and secrets
 .env
 .env.*
 *.env
@@ -23,14 +30,17 @@ key.properties
 *.keystore
 *.jks
 
+# IDE
 *.iml
 *.ipr
 *.iws
 .idea/
-
 .vscode/
 
+# API documentation
 **/doc/api/
+
+# Flutter / Dart
 **/ios/Flutter/.last_build_id
 .dart_tool/
 .flutter-plugins-dependencies
@@ -39,12 +49,14 @@ key.properties
 /build/
 /coverage/
 
+# Build symbols and maps
 app.*.symbols
-
 app.*.map.json
 
+# Android build outputs
 /android/app/debug
 /android/app/profile
 /android/app/release
 
+# Widget preview
 .widget_preview/

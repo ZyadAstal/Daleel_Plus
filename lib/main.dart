@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+);
   runApp(const DaleelApp());
 }
 
@@ -11,7 +16,7 @@ class DaleelApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Daleel+',
+      title: 'Daleel Plus',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -23,7 +28,7 @@ class DaleelApp extends StatelessWidget {
       home: const Scaffold(
         body: Center(
           child: Text(
-            'Daleel+',
+            'Daleel Plus',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
