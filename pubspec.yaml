@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.13.3
+  sdk: ^3.13.2
 
 dependencies:
   flutter:
@@ -15,6 +15,9 @@ dependencies:
   firebase_auth: ^7.0.0
   cloud_firestore: ^7.0.0
   get: ^4.7.3
+  shared_preferences: ^2.5.6
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
 
 dev_dependencies:
   flutter_test:
