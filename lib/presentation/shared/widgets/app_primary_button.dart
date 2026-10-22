@@ -64,11 +64,11 @@ class AppPrimaryButton extends StatelessWidget {
             : Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(text),
                   if (icon != null) ...[
                     const SizedBox(width: AppSizes.space8),
                     Icon(icon, size: 20),
                   ],
+                  Text(text),
                 ],
               ),
       ),
