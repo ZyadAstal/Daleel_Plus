@@ -7,37 +7,97 @@ import '../widgets/status_illustration.dart';
 import '../widgets/status_page_layout.dart';
 import '../widgets/status_suggestion_item.dart';
 
-class EmptyStateScreen extends GetView<AppStatusController> {
-  const EmptyStateScreen({super.key});
+class EmptyStateScreen extends StatefulWidget {
+  final String? searchTerm;
+  final VoidCallback? onClearSearch;
+  final String title;
+  final String description;
+  final String primaryButtonLabel;
+  final String secondaryButtonLabel;
+  final VoidCallback? onResetFilters;
+  final VoidCallback? onGoHome;
+  final Widget? customMiddleCard;
+
+  const EmptyStateScreen({
+    super.key,
+    this.searchTerm = 'ذكاء اصطناعي - سنة ثانية',
+    this.onClearSearch,
+    this.title = 'لم نعثر على نتائج مطابقة',
+    this.description = 'جرب تعديل كلمات البحث، أو إزالة بعض فلاتر التصفية والتخصص للعثور على دورات وخدمات جامعية أخرى.',
+    this.primaryButtonLabel = 'إعادة ضبط الفلاتر والبحث',
+    this.secondaryButtonLabel = 'العودة للرئيسية والتصنيفات',
+    this.onResetFilters,
+    this.onGoHome,
+    this.customMiddleCard,
+  });
+
+  @override
+  State<EmptyStateScreen> createState() => _EmptyStateScreenState();
+}
+
+class _EmptyStateScreenState extends State<EmptyStateScreen> {
+  late String? _currentSearchTerm;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentSearchTerm = widget.searchTerm;
+  }
+
+  @override
+  void didUpdateWidget(covariant EmptyStateScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.searchTerm != oldWidget.searchTerm) {
+      _currentSearchTerm = widget.searchTerm;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.isRegistered<AppStatusController>()
+        ? Get.find<AppStatusController>()
+        : Get.put(AppStatusController());
+
     return StatusPageLayout(
-      topPillWidget: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceSubdued,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.search_rounded, size: 14, color: AppColors.primary),
-            SizedBox(width: 6),
-            Text(
-              'بحث عن: "ذكاء اصطناعي - سنة ثانية"',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
+      topPillWidget: (_currentSearchTerm != null && _currentSearchTerm!.isNotEmpty)
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceSubdued,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
               ),
-            ),
-            SizedBox(width: 6),
-            Icon(Icons.close_rounded, size: 14, color: AppColors.primary),
-          ],
-        ),
-      ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.search_rounded, size: 14, color: AppColors.primary),
+                  const SizedBox(width: 6),
+                  Text(
+                    'بحث عن: "$_currentSearchTerm"',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _currentSearchTerm = null;
+                      });
+                      if (widget.onClearSearch != null) {
+                        widget.onClearSearch!();
+                      } else {
+                        controller.clearSearch();
+                      }
+                    },
+                    child: const Icon(Icons.close_rounded, size: 16, color: AppColors.primary),
+                  ),
+                ],
+              ),
+            )
+          : null,
       illustration: const StatusIllustration(
         assetPath: 'assets/images/empty.png',
         mainIcon: Icons.manage_search_rounded,
@@ -46,128 +106,144 @@ class EmptyStateScreen extends GetView<AppStatusController> {
         badgeIcon: Icons.school_rounded,
         badgeBgColor: AppColors.success,
       ),
-      title: 'لم نعثر على نتائج مطابقة',
-      description: 'جرب تعديل كلمات البحث، أو إزالة بعض فلاتر التصفية والتخصص للعثور على دورات وخدمات جامعية أخرى.',
-      middleCard: Column(
-        children: [
-          // Suggestions Container
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.lightbulb_outline_rounded, size: 18, color: AppColors.primary),
-                    SizedBox(width: 8),
-                    Text(
-                      'اقترحات مفيدة للوصول لطلبك',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12),
-                StatusSuggestionItem(
-                  icon: Icons.explore_outlined,
-                  iconBgColor: AppColors.surfaceSubdued,
-                  iconColor: AppColors.primary,
-                  title: 'توسيع النطاق الجغرافي ليشمل كافة الجامعات',
-                ),
-                SizedBox(height: 10),
-                StatusSuggestionItem(
-                  icon: Icons.grid_view_rounded,
-                  iconBgColor: Color(0xFFFEF3C7),
-                  iconColor: Color(0xFFD97706),
-                  title: 'استكشاف الأقسام الأربعة الموصى بها لهذا الشهر',
-                ),
-              ],
-            ),
+      title: widget.title,
+      description: widget.description,
+      middleCard: widget.customMiddleCard ?? _defaultMiddleCard(),
+      actionButtons: StatusActionButtons(
+        primaryLabel: widget.primaryButtonLabel,
+        primaryIcon: Icons.tune_rounded,
+        onPrimaryPressed: () {
+          if (widget.onResetFilters != null) {
+            widget.onResetFilters!();
+          } else {
+            controller.resetFilters();
+          }
+        },
+        secondaryLabel: widget.secondaryButtonLabel,
+        secondaryIcon: Icons.home_rounded,
+        onSecondaryPressed: () {
+          if (widget.onGoHome != null) {
+            widget.onGoHome!();
+          } else {
+            controller.goToHome();
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _defaultMiddleCard() {
+    return Column(
+      children: [
+        // Suggestions Container
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
           ),
-
-          const SizedBox(height: 16),
-
-          // 2x2 Search Chips Grid (Matching Figma Design Exactly)
-          Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'جرب البحث في المجالات الأكثر طلباً:',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                  ),
-                  Text(
-                    'تحديث مستمر',
-                    style: TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
               Row(
                 children: [
-                  Expanded(
-                    child: _buildSearchChip(
-                      label: 'ملخصات هندسية',
-                      dotColor: const Color(0xFF5E42E2),
-                      textColor: const Color(0xFF5E42E2),
-                      bgColor: const Color(0xFFEDE9FE),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildSearchChip(
-                      label: 'سكن طالبات قريب',
-                      dotColor: const Color(0xFFB45309),
-                      textColor: AppColors.textPrimary,
-                      bgColor: const Color(0xFFE0E7FF),
+                  Icon(Icons.lightbulb_outline_rounded, size: 18, color: AppColors.primary),
+                  SizedBox(width: 8),
+                  Text(
+                    'اقترحات مفيدة للوصول لطلبك',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSearchChip(
-                      label: 'مدرس خصوصي إحصاء',
-                      dotColor: const Color(0xFF047857),
-                      textColor: AppColors.textPrimary,
-                      bgColor: const Color(0xFFE0E7FF),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildSearchChip(
-                      label: 'تدريب صيفي',
-                      dotColor: const Color(0xFF5E42E2),
-                      textColor: AppColors.textPrimary,
-                      bgColor: const Color(0xFFE0E7FF),
-                    ),
-                  ),
-                ],
+              SizedBox(height: 12),
+              StatusSuggestionItem(
+                icon: Icons.explore_outlined,
+                iconBgColor: AppColors.surfaceSubdued,
+                iconColor: AppColors.primary,
+                title: 'توسيع النطاق الجغرافي ليشمل كافة الجامعات',
+              ),
+              SizedBox(height: 10),
+              StatusSuggestionItem(
+                icon: Icons.grid_view_rounded,
+                iconBgColor: AppColors.surfaceSubdued,
+                iconColor: AppColors.secondary,
+                title: 'استكشاف الأقسام الأربعة الموصى بها لهذا الشهر',
               ),
             ],
           ),
-        ],
-      ),
-      actionButtons: StatusActionButtons(
-        primaryLabel: 'إعادة ضبط الفلاتر والبحث',
-        primaryIcon: Icons.tune_rounded,
-        onPrimaryPressed: controller.resetFilters,
-        secondaryLabel: 'العودة للرئيسية والتصنيفات',
-        secondaryIcon: Icons.home_rounded,
-        onSecondaryPressed: controller.goToHome,
-      ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // 2x2 Search Chips Grid (Matching Figma Design)
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'جرب البحث في المجالات الأكثر طلباً:',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                Text(
+                  'تحديث مستمر',
+                  style: TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildSearchChip(
+                    label: 'ملخصات هندسية',
+                    dotColor: AppColors.primary,
+                    textColor: AppColors.primary,
+                    bgColor: AppColors.surfaceSubdued,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildSearchChip(
+                    label: 'سكن طالبات قريب',
+                    dotColor: AppColors.secondary,
+                    textColor: AppColors.textPrimary,
+                    bgColor: AppColors.surfaceSubdued,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildSearchChip(
+                    label: 'مدرس خصوصي إحصاء',
+                    dotColor: AppColors.success,
+                    textColor: AppColors.textPrimary,
+                    bgColor: AppColors.surfaceSubdued,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildSearchChip(
+                    label: 'تدريب صيفي',
+                    dotColor: AppColors.primary,
+                    textColor: AppColors.textPrimary,
+                    bgColor: AppColors.surfaceSubdued,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -175,7 +251,7 @@ class EmptyStateScreen extends GetView<AppStatusController> {
     required String label,
     required Color dotColor,
     Color textColor = AppColors.textPrimary,
-    Color bgColor = const Color(0xFFE0E7FF),
+    Color bgColor = AppColors.surfaceSubdued,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

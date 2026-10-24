@@ -7,11 +7,32 @@ import '../widgets/status_illustration.dart';
 import '../widgets/status_page_layout.dart';
 import '../widgets/status_suggestion_item.dart';
 
-class OfflineStateScreen extends GetView<AppStatusController> {
-  const OfflineStateScreen({super.key});
+class OfflineStateScreen extends StatelessWidget {
+  final String title;
+  final String description;
+  final String primaryButtonLabel;
+  final String secondaryButtonLabel;
+  final VoidCallback? onCheckConnection;
+  final VoidCallback? onOpenOfflineContent;
+  final Widget? customMiddleCard;
+
+  const OfflineStateScreen({
+    super.key,
+    this.title = 'أنت غير متصل بالإنترنت حالياً',
+    this.description = 'يرجى التحقق من اتصال شبكة Wi-Fi أو بيانات الهاتف المحمول. يمكنك تصفح ملخصاتك والطلبات المحفوظة مسبقاً في وضع عدم الاتصال.',
+    this.primaryButtonLabel = 'إعادة فحص الاتصال',
+    this.secondaryButtonLabel = 'تصفح المحتوى المحفوظ أوفلاين',
+    this.onCheckConnection,
+    this.onOpenOfflineContent,
+    this.customMiddleCard,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.isRegistered<AppStatusController>()
+        ? Get.find<AppStatusController>()
+        : Get.put(AppStatusController());
+
     return StatusPageLayout(
       topPillWidget: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -64,85 +85,101 @@ class OfflineStateScreen extends GetView<AppStatusController> {
         badgeIcon: Icons.refresh_rounded,
         badgeBgColor: AppColors.error,
       ),
-      title: 'أنت غير متصل بالإنترنت حالياً',
-      description: 'يرجى التحقق من اتصال شبكة Wi-Fi أو بيانات الهاتف المحمول. يمكنك تصفح ملخصاتك والطلبات المحفوظة مسبقاً في وضع عدم الاتصال.',
-      middleCard: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.bolt_rounded, size: 18, color: AppColors.primary),
-                    SizedBox(width: 6),
-                    Text(
-                      'ميزات متاحة بدون إنترنت',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceSubdued,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Text(
-                    'مزامنة سابقة',
-                    style: TextStyle(fontSize: 9, color: AppColors.primary, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const StatusSuggestionItem(
-              icon: Icons.badge_outlined,
-              iconBgColor: AppColors.surfaceSubdued,
-              iconColor: AppColors.primary,
-              title: 'عرض بطاقة دليل+ الطلابية ...',
-              subtitle: 'جاهزة للاستخدام في المراكز المعتمدة بدون شبكة',
-              trailingIcon: Icons.chevron_left_rounded,
-            ),
-            const SizedBox(height: 10),
-            const StatusSuggestionItem(
-              icon: Icons.calendar_month_outlined,
-              iconBgColor: AppColors.surfaceSubdued,
-              iconColor: AppColors.primary,
-              title: 'استعراض مواعيد جلسات التدريس...',
-              subtitle: 'جدولك الأكاديمي وملخصات الـ PDF المخزنة',
-              trailingIcon: Icons.chevron_left_rounded,
-            ),
-            const SizedBox(height: 10),
-            const StatusSuggestionItem(
-              icon: Icons.contact_phone_outlined,
-              iconBgColor: AppColors.surfaceSubdued,
-              iconColor: AppColors.primary,
-              title: 'أرقام هواتف وعناوين مراكز الخدمة...',
-              subtitle: 'دليل نقاط شحن الطاقة، خدمات الطباعة، والدعم الطارئ',
-              trailingIcon: Icons.chevron_left_rounded,
-            ),
-          ],
-        ),
-      ),
+      title: title,
+      description: description,
+      middleCard: customMiddleCard ?? _defaultMiddleCard(),
       actionButtons: StatusActionButtons(
-        primaryLabel: 'إعادة فحص الاتصال',
+        primaryLabel: primaryButtonLabel,
         primaryIcon: Icons.sync_rounded,
-        onPrimaryPressed: controller.checkConnection,
-        secondaryLabel: 'تصفح المحتوى المحفوظ أوفلاين',
+        onPrimaryPressed: () {
+          if (onCheckConnection != null) {
+            onCheckConnection!();
+          } else {
+            controller.checkConnection();
+          }
+        },
+        secondaryLabel: secondaryButtonLabel,
         secondaryIcon: Icons.folder_zip_outlined,
-        onSecondaryPressed: controller.openOfflineContent,
+        onSecondaryPressed: () {
+          if (onOpenOfflineContent != null) {
+            onOpenOfflineContent!();
+          } else {
+            controller.openOfflineContent();
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _defaultMiddleCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.bolt_rounded, size: 18, color: AppColors.primary),
+                  SizedBox(width: 6),
+                  Text(
+                    'ميزات متاحة بدون إنترنت',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceSubdued,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  'مزامنة سابقة',
+                  style: TextStyle(fontSize: 9, color: AppColors.primary, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const StatusSuggestionItem(
+            icon: Icons.badge_outlined,
+            iconBgColor: AppColors.surfaceSubdued,
+            iconColor: AppColors.primary,
+            title: 'عرض بطاقة دليل+ الطلابية ...',
+            subtitle: 'جاهزة للاستخدام في المراكز المعتمدة بدون شبكة',
+            trailingIcon: Icons.chevron_left_rounded,
+          ),
+          const SizedBox(height: 10),
+          const StatusSuggestionItem(
+            icon: Icons.calendar_month_outlined,
+            iconBgColor: AppColors.surfaceSubdued,
+            iconColor: AppColors.primary,
+            title: 'استعراض مواعيد جلسات التدريس...',
+            subtitle: 'جدولك الأكاديمي وملخصات الـ PDF المخزنة',
+            trailingIcon: Icons.chevron_left_rounded,
+          ),
+          const SizedBox(height: 10),
+          const StatusSuggestionItem(
+            icon: Icons.contact_phone_outlined,
+            iconBgColor: AppColors.surfaceSubdued,
+            iconColor: AppColors.primary,
+            title: 'أرقام هواتف وعناوين مراكز الخدمة...',
+            subtitle: 'دليل نقاط شحن الطاقة، خدمات الطباعة، والدعم الطارئ',
+            trailingIcon: Icons.chevron_left_rounded,
+          ),
+        ],
       ),
     );
   }
