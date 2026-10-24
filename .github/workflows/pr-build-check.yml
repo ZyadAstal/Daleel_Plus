@@ -1,41 +1,46 @@
 
-name: PR Build Check and Deploy to Firebase App Distribution
+name: Build Check and Firebase Distribution
 
 on:
   push:
     branches:
       - dev
+      - main
   pull_request:
-    branches:
-      - dev
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build:
-    name: Check Build
+  build-android:
+    name: Build Android
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Project
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: "17"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          cache: true
 
-      - name: Get Dependencies
+      - name: Install dependencies
         run: flutter pub get
 
-      - name: Configure Firebase Android
+      - name: Analyze code
+        run: flutter analyze
+        continue-on-error: true
+
+      - name: Setup Firebase JSON
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
@@ -47,38 +52,34 @@ jobs:
           printf '%s' "$GOOGLE_SERVICES_JSON" \
             > android/app/google-services.json
 
-          test -s android/app/google-services.json
+          jq empty android/app/google-services.json
 
       - name: Build APK
-        run: flutter build apk --debug
+        run: flutter build apk --release
 
-      - name: Setup Firebase Credentials
-        if: github.event_name == 'push'
+      - name: Install Firebase CLI
+        if: github.event_name != 'pull_request'
+        run: npm install -g firebase-tools
+
+      - name: Upload to Firebase App Distribution
+        if: github.event_name != 'pull_request'
         env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
         run: |
-          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
-            echo "FIREBASE_SERVICE_ACCOUNT secret is missing"
+          if [ -z "$FIREBASE_TOKEN" ]; then
+            echo "FIREBASE_TOKEN secret is missing"
             exit 1
           fi
 
-          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" \
-            > "$RUNNER_TEMP/firebase-service-account.json"
+          if [ -z "$FIREBASE_APP_ID" ]; then
+            echo "FIREBASE_APP_ID secret is missing"
+            exit 1
+          fi
 
-          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" \
-            >> "$GITHUB_ENV"
-
-      - name: Install Firebase CLI
-        if: github.event_name == 'push'
-        run: npm install -g firebase-tools
-
-      - name: Upload APK to Firebase App Distribution
-        if: github.event_name == 'push'
-        env:
-          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
-        run: |
           firebase appdistribution:distribute \
-            build/app/outputs/flutter-apk/app-debug.apk \
+            build/app/outputs/flutter-apk/app-release.apk \
             --app "$FIREBASE_APP_ID" \
             --groups "testers" \
-            --release-notes "Build from dev branch"
+            --release-notes "Build from GitHub Actions: $GITHUB_REF_NAME" \
+            --token "$FIREBASE_TOKEN"
