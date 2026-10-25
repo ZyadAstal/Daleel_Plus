@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
 import '../theme/app_text_styles.dart';
@@ -59,7 +60,10 @@ class AppPrimaryButton extends StatelessWidget {
             ? SizedBox(
                 width: 22,
                 height: 22,
-                child: CircularProgressIndicator(color: textColor, strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  color: textColor,
+                  strokeWidth: 2,
+                ),
               )
             : Row(
                 mainAxisSize: MainAxisSize.min,
@@ -68,7 +72,9 @@ class AppPrimaryButton extends StatelessWidget {
                     const SizedBox(width: AppSizes.space8),
                     Icon(icon, size: 20),
                   ],
-                  Text(text),
+                  Flexible(
+                    child: Text(text, textAlign: TextAlign.center, maxLines: 2),
+                  ),
                 ],
               ),
       ),
