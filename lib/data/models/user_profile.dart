@@ -1,5 +1,4 @@
-/// Profile fields owned by auth/profile in users/{Firebase Auth uid}.
-/// Provider dashboard data in serviceProviders belongs to the providers feature.
+/// Auth/profile data with separate UI and team Firestore mappings.
 class UserProfile {
   const UserProfile({
     required this.name,
@@ -54,4 +53,60 @@ class UserProfile {
     'location': location,
     'portfolio': portfolio,
   };
+
+  static const providerTypes = <String, String>{
+    'education': 'training_center',
+    'opportunities': 'company_employee',
+    'printing': 'print_shop',
+    'privateTutor': 'private_tutor',
+  };
+
+  Map<String, dynamic> toUserDocument() => {
+    'fullname': name,
+    'phone_number': phone,
+    'user_role': accountType == 'provider' ? 'Provider' : 'Student',
+  };
+
+  Map<String, dynamic> toDetailsDocument() => accountType == 'provider'
+      ? {
+          'provider_type': providerTypes[providerType],
+          'business_name': name,
+          'headline': field,
+          'city': location,
+          'commercial_register_or_portfolio': portfolio.isEmpty
+              ? null
+              : portfolio,
+        }
+      : {
+          'university_name': university,
+          'major': specialization,
+          'interests': interests,
+          'city_location': location,
+        };
+
+  factory UserProfile.fromDocuments(
+    Map<String, dynamic> user,
+    Map<String, dynamic> details,
+  ) {
+    final phone = user['phone_number'] as String? ?? '';
+    final provider = user['user_role'] == 'Provider';
+    final storedType = details['provider_type'];
+    String? providerType;
+    for (final entry in providerTypes.entries) {
+      if (entry.value == storedType) providerType = entry.key;
+    }
+    return UserProfile(
+      name: user['fullname'] as String? ?? '',
+      phone: phone,
+      countryCode: phone.startsWith('+972') ? '+972' : '+970',
+      accountType: provider ? 'provider' : 'individual',
+      providerType: providerType,
+      university: details['university_name'] as String? ?? '',
+      specialization: details['major'] as String? ?? '',
+      interests: details['interests'] as String? ?? '',
+      field: details['headline'] as String? ?? '',
+      location: details[provider ? 'city' : 'city_location'] as String? ?? '',
+      portfolio: details['commercial_register_or_portfolio'] as String? ?? '',
+    );
+  }
 }

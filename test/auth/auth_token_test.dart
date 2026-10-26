@@ -1,3 +1,4 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:daleel_plus/data/repositories/auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -41,6 +42,7 @@ class TokenStore extends Fake implements FirebaseFirestore {
 }
 
 void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
   test(
     'Verification refreshes token after reloading the verified user',
     () async {
@@ -54,12 +56,12 @@ void main() {
     },
   );
   test('Profile access refreshes claims before contacting Firestore', () async {
-    final user = TokenUser();
+    final user = TokenUser()..verified = true;
     final service = FirebaseAuthRepository(
       auth: TokenAuth(user),
       firestore: TokenStore(user.calls),
     );
     await expectLater(service.loadProfile(), throwsStateError);
-    expect(user.calls, ['token:true', 'firestore:users']);
+    expect(user.calls, ['token:true', 'firestore:Users']);
   });
 }
