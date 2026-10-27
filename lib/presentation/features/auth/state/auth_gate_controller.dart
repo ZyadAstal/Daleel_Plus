@@ -42,7 +42,8 @@ class AuthGateController extends GetxController {
       onboardingCompleted = completed;
     } catch (_) {
       if (isClosed) return;
-      preferencesError = true;
+      onboardingCompleted = false;
+      preferencesError = false;
     } finally {
       if (!isClosed) update();
     }
