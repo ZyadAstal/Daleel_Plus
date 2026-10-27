@@ -1,34 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
-import 'firebase_options.dart';
-import 'presentation/shared/theme/app_theme.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-Future<void> main() async {
+// ✅ استيراد ملف الخيارات الذي يولده FlutterFire
+import 'firebase_options.dart';
+
+import 'presentation/features/navigation/screens/main_layout_screen.dart';
+import 'presentation/shared/constants/app_colors.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(const DaleelApp());
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  runApp(const MyApp());
 }
 
-class DaleelApp extends StatelessWidget {
-  const DaleelApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    const String initialUid = 'jVqNtoSxQTN1igw5okW1MwXGltp2';
+
     return GetMaterialApp(
       title: 'Daleel Plus',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      builder: (context, child) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: child!,
+      textDirection: TextDirection.rtl,
+      theme: ThemeData(
+        primaryColor: AppColors.primary,
+        scaffoldBackgroundColor: AppColors.surfaceSubdued,
+        fontFamily: 'Cairo',
       ),
-      home: const Scaffold(
-        body:Center(child: Text('hello'),
-      ),
-      ),
+      home: MainLayoutScreen(targetUid: initialUid),
     );
   }
 }

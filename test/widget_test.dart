@@ -8,7 +8,7 @@ void main() {
     testWidgets('DaleelApp boots and renders Daleel+ title', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(const DaleelApp());
+      await tester.pumpWidget(const MyApp());
       await tester.pumpAndSettle();
 
       expect(find.byType(MaterialApp), findsOneWidget);
