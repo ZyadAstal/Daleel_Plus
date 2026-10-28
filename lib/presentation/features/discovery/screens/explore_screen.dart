@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controllers/explore_controller.dart';
+import '../state/explore_controller.dart';
 import 'search_screen.dart'; // شاشة البحث السريع
 import 'filter_screen.dart'; // شاشة تصفية وتخصيص النتائج
 import '../../../../data/models/home_data_models.dart';

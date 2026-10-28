@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controllers/filtered_results_controller.dart';
+import '../state/filtered_results_controller.dart';
 import '../../../shared/constants/app_colors.dart';
 import 'filter_screen.dart';
 
@@ -168,7 +168,6 @@ class FilteredResultsScreen extends StatelessWidget {
             );
           }
 
-          // 4. فلاتر طرق الحضور المحددة
           for (var mode in controller.activeAttendanceModes) {
             chips.add(
               _buildFilterChip(
@@ -180,7 +179,6 @@ class FilteredResultsScreen extends StatelessWidget {
             );
           }
 
-          // 5. فلتر التقييم
           if (controller.activeMinRating.value > 0) {
             chips.add(
               _buildFilterChip(
@@ -315,7 +313,6 @@ class FilteredResultsScreen extends StatelessWidget {
     );
   }
 
-  // عرض البيانات الحقيقية فقط المجلوبة من جداول Firebase
   Widget _buildResultsList() {
     return Obx(() {
       if (controller.resultsList.isEmpty) {

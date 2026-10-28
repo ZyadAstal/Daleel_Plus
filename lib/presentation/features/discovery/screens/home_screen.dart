@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controllers/home_controller.dart';
+import '../state/home_controller.dart';
 import '../../../shared/constants/app_colors.dart';
 import 'filter_screen.dart';
 
