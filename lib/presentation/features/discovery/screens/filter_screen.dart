@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controllers/filter_controller.dart';
+import '../state/filter_controller.dart';
 import '../../../shared/constants/app_colors.dart';
 
 class FilterScreen extends StatelessWidget {

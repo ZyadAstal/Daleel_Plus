@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controllers/search_controller.dart';
+import '../state/search_controller.dart';
 import '../../../shared/constants/app_colors.dart';
 
 class SearchScreen extends StatelessWidget {
