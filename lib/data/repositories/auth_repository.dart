@@ -126,19 +126,23 @@ class FirebaseAuthRepository extends GetxService implements AuthRepository {
       email: email.trim(),
       password: password,
     );
-    try {
-      await saveProfile(profile);
-    } catch (_) {
-      // Auth succeeded: keep the session so profile completion can be retried.
-      throw ProfileSaveFailure();
-    }
+    await SessionPreferences().savePendingProfile(currentUser!.uid, profile);
   }
 
   @override
-  Future<void> saveProfile(UserProfile profile) => _profiles.save(profile);
+  Future<void> saveProfile(UserProfile profile) async {
+    await _profiles.save(profile);
+    await SessionPreferences().clearPendingProfile(currentUser!.uid);
+  }
 
   @override
-  Future<UserProfile?> loadProfile() => _profiles.load();
+  Future<UserProfile?> loadProfile() async {
+    final user = currentUser;
+    if (user == null || !user.emailVerified) return null;
+    final pending = await SessionPreferences().pendingProfile(user.uid);
+    if (pending != null) await saveProfile(pending);
+    return _profiles.load();
+  }
 
   @override
   Future<void> googleSignIn({bool remember = true}) async {

@@ -111,3 +111,10 @@ Tests under `test/auth` use `FakeAuthRepository`; they do not connect to product
 Firebase or create real users. The profile model serialization and repository
 token refresh are tested separately. Consent text is marked as a draft for the
 team's review. No Firebase server settings or deployed data are changed by tests.
+
+
+## Team schema alignment
+
+Auth/profile now writes Users/{uid} plus Student_Profiles/{uid} or Service_Providers/{uid} atomically, after email verification. Field names and provider enum values follow the team PDF. UI/local pending-profile maps remain internal and are never written directly to Firestore.
+
+No existing cloud records or security rules were migrated. Existing provider-feature readers still use users/serviceProviders and need alignment by their owner. Firestore rules must allow the new exact collection names for the verified document owner and protect status, verification_status, ratings and role transitions. Missing academic level is stored as null rather than inventing a level. The ambiguous student Id/user Id labels are represented by student_id/user_id; providers use provider_id/user_id.
