@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="daleel_plus"
+        android:label="Daleel Plus"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -1,4 +1,4 @@
-package com.example.daleel_plus
+package com.daleelplus.app
 
 import io.flutter.embedding.android.FlutterActivity
 
