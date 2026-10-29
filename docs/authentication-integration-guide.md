@@ -1,124 +1,120 @@
-# Daleel+ Authentication Integration Guide
+# Authentication integration
 
-This guide explains how to use the authentication service in your screens and how the mock service works during development.
+This branch ports the working Firebase registration/login flow into the team's
+feature structure. It keeps the existing Firebase project, native application
+identifiers, Cairo fonts, theme and provider/status features.
 
----
+## Entry point and ownership
 
-## 1. Overview
+`main.dart` registers `AuthRepository` and opens `AuthGate`.
 
-The authentication layer uses a shared interface:
+- `presentation/features/auth`: login, registration, Google password setup,
+  verification link, recovery, consent screens and GetX state.
+- `presentation/features/onboarding`: welcome and the three introduction pages.
+- `presentation/features/profile`: account summary and editing entry point.
+- `data/models/user_profile.dart`: typed profile with `fromJson` / `toJson`.
+- `data/repositories/auth_repository.dart`: shared authentication contract and
+  Firebase implementation. No direct Firebase calls in the feature screens or
+  controllers.
+- `data/repositories/profile_repository.dart`: reads/writes `users/{uid}`.
+- `data/repositories/session_preferences.dart`: introduction completion and the
+  optional remembered email. Passwords and tokens are never stored here.
 
-- **Interface**: `lib/services/auth_service.dart` (`AuthService`)
-- **Mock Service**: `lib/services/mock_auth_service.dart` (`MockAuthService`)
-- **Models**: `lib/models/auth_models.dart` (`User`, `LoginRequest`, `RegisterRequest`, `AuthResponse`)
-- **Results**: `lib/models/auth_result.dart` (`AuthResult`, `AuthSuccess`, `AuthFailure`, `AuthErrorType`)
-- **Configuration**: `lib/services/api_config.dart` (`ApiConfig`)
+Screens use `Get.to`, `Get.off`, `Get.offAll` and `Get.back`; there are no named
+routes. Controllers are scoped to their screens and close their timers,
+subscriptions and text controllers on disposal.
 
----
+## Behavior
 
-## 2. Using `AuthService` in Screens
+- The welcome/introduction flow appears until first completion or skipping.
+- Firebase sessions persist on Android and web until explicit sign-out.
+- Remember me saves only the email after successful authentication. It pre-fills
+  the next login after sign-out and never fills a password. A successful login
+  without this option clears the saved email.
+- Email registration creates a Firebase Auth account, then the user profile.
+  Unverified accounts stay at verification. Firebase emails contain a link, not
+  a numeric OTP. The screen checks every five seconds while active and on resume.
+- Google authentication uses Firebase credentials. A Google account without a
+  password completes its profile and links a password to the same Firebase uid.
+- Recovery sends Firebase's email reset link. SMS recovery and Apple login
+  remain unavailable; the interface does not pretend they work.
+- Phone entry supports +970 and +972, defaults to +970, and requires nine digits
+  after the prefix.
 
-Screens should always call `AuthService` rather than making HTTP calls directly. This keeps the UI decoupled from networking details.
+## Shared design
 
-### Example: Handling Login
+The repository currently stores its design system in `presentation/shared`,
+despite the README tree mentioning `core`. This integration uses those existing
+`AppColors`, `AppSizes`, `AppTextStyles`, `AppTheme` and `AppPrimaryButton`.
 
-```dart
-import 'package:flutter/material.dart';
-import 'package:daleel_plus/models/auth_models.dart';
-import 'package:daleel_plus/models/auth_result.dart';
-import 'package:daleel_plus/services/auth_service.dart';
+`AppTextField`, `AppTopBar` and `AppSectionHeader` listed in README are absent in
+this checkout. The registration field stays within `auth/widgets` until the team
+provides the shared field API. Auth presentation helpers are reused by onboarding
+and profile without copying them into those features.
 
-class LoginController {
-  final AuthService _authService;
+One existing shared file changes: `AppPrimaryButton` wraps its label in Flexible
+so long Arabic labels fit narrow screens. The constructor and visual design are
+unchanged. Review this small shared change with the team before merging.
 
-  LoginController(this._authService);
+## Firestore contract and provider integration
 
-  Future<void> submitLogin(String email, String password) async {
-    final result = await _authService.login(
-      LoginRequest(email: email, password: password),
-    );
+`users/{uid}` stores identity/profile data: `uid`, `email`, `name`, `phone`,
+`countryCode`, `accountType`, `providerType`, `university`, `specialization`,
+`interests`, `field`, `location`, `portfolio`, and server `updatedAt`.
 
-    switch (result) {
-      case AuthSuccess(:final response):
-        // Navigate to home or profile setup
-        break;
+`accountType` is `individual` or `provider`. Provider types are `education`,
+`opportunities`, `printing`, and `privateTutor`.
 
-      case AuthFailure(:final errorType, :final message, :final fieldErrors):
-        // Show user-friendly error message or form field errors
-        switch (errorType) {
-          case AuthErrorType.invalidCredentials:
-            // Show invalid email/password message
-            break;
-          case AuthErrorType.validation:
-            // Show field validation errors using fieldErrors map
-            break;
-          case AuthErrorType.network:
-            // Show network / offline error
-            break;
-          case AuthErrorType.conflict:
-          case AuthErrorType.unexpected:
-            // Show general error message
-            break;
-        }
-        break;
-    }
-  }
-}
+The providers feature independently reads business data from
+`serviceProviders/{uid}`. Authentication does not create business records,
+grant verification/administrative roles, or write that feature's fields. The
+post-login landing page is the account/profile screen. Agree on business record
+creation and destination routing with the provider/discovery owners before
+connecting their dashboards. Existing provider screens/controllers are untouched.
+
+Existing server rules must enforce ownership, input validation, and verified
+email access where appropriate. This branch does not deploy or replace project
+rules because that could break other features' collections.
+
+## Native setup
+
+The checked-in `firebase_options.dart` remains the source for the team's Android,
+iOS and web app registrations. Do not copy the standalone app's native config:
+its package ids and Firebase app ids differ.
+
+Matching Android and iOS SDK configuration files were downloaded locally from
+the existing Firebase app registrations. They remain ignored by Git; CI already
+supplies Android configuration through its secret. This Windows machine's debug
+SHA-1 and SHA-256 were registered for the team's Android app. Other developers
+and release/CI builds must register their own signing-key fingerprints.
+
+`ios/Runner/Info.plist` now includes the matching Google client/server IDs and
+reversed-client-id callback scheme. Validate iOS with Xcode on macOS; it cannot
+be built on this Windows host. Neither mobile Google login nor a production
+login is exercised by the mock test suite.
+
+On Windows, if `flutter pub get` reports missing symlink support, enable Windows
+Developer Mode and run it again. Dependencies were resolved locally and tests
+can be run with `flutter test --no-pub`; this does not replace the OS setup for
+normal development.
+
+## Validation
+
+```sh
+flutter pub get
+flutter analyze
+flutter test
+flutter run -d chrome --web-port=8080
 ```
 
----
+Tests under `test/auth` use `FakeAuthRepository`; they do not connect to production
+Firebase or create real users. The profile model serialization and repository
+token refresh are tested separately. Consent text is marked as a draft for the
+team's review. No Firebase server settings or deployed data are changed by tests.
 
-## 3. Mock Authentication Behavior
 
-`MockAuthService` is an **in-memory mock** for frontend development:
+## Team schema alignment
 
-> [!NOTE]
-> Sessions and newly registered accounts exist in memory only. They reset when the application restarts. Persistent login will be added when real backend integration is introduced.
+Auth/profile now writes Users/{uid} plus Student_Profiles/{uid} or Service_Providers/{uid} atomically, after email verification. Field names and provider enum values follow the team PDF. UI/local pending-profile maps remain internal and are never written directly to Firestore.
 
-### Test Fixtures
-- **Default Login**:
-  - Email: `student@test.local`
-  - Password: `ValidPass123`
-- **Duplicate Email Trigger**:
-  - Email: `existing@test.local` (returns `AuthErrorType.conflict`)
-- **Simulated Network Error Trigger**:
-  - Email: `network-error@test.local` (returns `AuthErrorType.network`)
-
----
-
-## 4. Security Rules (SRS NFR-09)
-
-- **Never log passwords, credentials, or tokens** to the console or logs.
-- `LoginRequest`, `RegisterRequest`, and `AuthResponse` hide passwords and tokens in their `toString()` methods.
-- Form password fields should always use `obscureText: true`.
-
----
-
-## 5. Future Real Backend Integration
-
-When the ASP.NET Core backend is ready, a real service class (`ApiAuthService`) will implement the same `AuthService` interface:
-
-```dart
-class ApiAuthService implements AuthService {
-  final ApiConfig _config;
-
-  ApiAuthService(this._config);
-
-  @override
-  Future<AuthResult> login(LoginRequest request) async {
-    // Send actual HTTP POST to confirmed endpoint
-  }
-
-  // ...
-}
-```
-
-Because screens only depend on `AuthService`, swapping the mock for the real service will require **zero changes to screen code**.
-
-### Backend Contract Details Needed Before Real Integration
-1. Endpoint paths and HTTP methods (e.g. `/api/auth/login`).
-2. JSON property naming conventions (camelCase vs. PascalCase).
-3. Response format (direct DTO vs. wrapper envelope).
-4. Validation error response format.
-5. Token structure, expiration, and refresh handling.
-6. Serialized values for account and provider types.
+No existing cloud records or security rules were migrated. Existing provider-feature readers still use users/serviceProviders and need alignment by their owner. Firestore rules must allow the new exact collection names for the verified document owner and protect status, verification_status, ratings and role transitions. Missing academic level is stored as null rather than inventing a level. The ambiguous student Id/user Id labels are represented by student_id/user_id; providers use provider_id/user_id.

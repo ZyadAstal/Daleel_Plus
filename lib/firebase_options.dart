@@ -58,7 +58,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAN4PI1dBpIuizZRvebGb2tGA7eNL_rWNQ',
-    appId: '1:219382038515:android:8605aaedc4bf6893c59c86',
+    appId: '1:219382038515:android:2b1764544dbdb34cc59c86',
     messagingSenderId: '219382038515',
     projectId: 'daleel-plus-5339d',
     storageBucket: 'daleel-plus-5339d.firebasestorage.app',
@@ -66,10 +66,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAHJ9F1bPEHA0JdstDmGBkrRyD9MefoWyA',
-    appId: '1:219382038515:ios:79ff01dae4eb0ac5c59c86',
+    appId: '1:219382038515:ios:f5c62b3671c021e6c59c86',
     messagingSenderId: '219382038515',
     projectId: 'daleel-plus-5339d',
     storageBucket: 'daleel-plus-5339d.firebasestorage.app',
-    iosBundleId: 'com.example.daleelPlus',
+    androidClientId: '219382038515-75lk9f3ptajinb9pralh4ddiuj667u6c.apps.googleusercontent.com',
+    iosClientId: '219382038515-hoa7kh698ghq750efbr1eh1h8q2e2hfr.apps.googleusercontent.com',
+    iosBundleId: 'com.daleelplus.app',
   );
 }
