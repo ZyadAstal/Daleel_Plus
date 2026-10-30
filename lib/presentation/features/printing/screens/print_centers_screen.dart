@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../shared/constants/app_colors.dart';
 import '../../../shared/constants/app_sizes.dart';
-import '../../../shared/widgets/widgets.dart';
 import '../../providers/widgets/provider_top_bar.dart';
+import '../../../shared/widgets/student_bottom_nav.dart';
 import '../state/print_centers_controller.dart';
 import '../state/print_order_controller.dart';
 import 'print_order_screen.dart';
+import '../../app_status/screens/system_error_screen.dart';
+import '../../app_status/screens/empty_state_screen.dart';
 
 class PrintCentersScreen extends StatelessWidget {
   const PrintCentersScreen({super.key});
@@ -70,16 +72,30 @@ class PrintCentersScreen extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // إذا صار خطأ: بعد تجهيز شاشة 42 من app_status استبدلي السطر الحالي بـ:
-        // if (controller.errorMessage.value.isNotEmpty) {
-        //   return SystemErrorScreen(onRetry: ...); // شاشة 42 من app_status
-        // }
         if (controller.errorMessage.value.isNotEmpty) {
-          return Center(child: Text(controller.errorMessage.value));
+          return SystemErrorScreen(
+            description: controller.errorMessage.value,
+            showSafetyCard: false,
+            errorDetails: null,
+            apiPath: null,
+            timeoutText: null,
+            onRetry: controller.retry,
+          );
         }
 
         final centers = controller.visibleCenters;
         final available = controller.centers.where((c) => c['isAcceptingOrders'] ?? true).toList();
+
+        if (centers.isEmpty && controller.searchText.value.trim().isNotEmpty) {
+          return EmptyStateScreen(
+            searchTerm: controller.searchText.value.trim(),
+            onClearSearch: () => controller.changeSearch(''),
+            onResetFilters: () {
+              controller.changeSearch('');
+              controller.changeFilter(PrintFilter.all);
+            },
+          );
+        }
 
         return SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: AppSizes.space16),
@@ -109,8 +125,6 @@ class PrintCentersScreen extends StatelessWidget {
                       discount: controller.maxStudentDiscount,
                     ),
                     const SizedBox(height: AppSizes.space24),
-                    // لا توجد نتائج للبحث: بعد تجهيز شاشة 41 من app_status استبدلي _EmptyState بـ:
-                    // EmptyStateScreen(searchTerm: ..., onClearSearch: ...) // شاشة 41 من app_status
                     if (centers.isEmpty)
                       _EmptyState(
                         message: controller.searchText.value.trim().isEmpty
@@ -133,17 +147,7 @@ class PrintCentersScreen extends StatelessWidget {
           ),
         );
       }),
-      bottomNavigationBar: AppBottomNavBar(
-        currentIndex: 1,
-        onTap: (_) {},
-        items: const [
-          AppNavItem(icon: Icons.home_outlined, label: 'الرئيسية'),
-          AppNavItem(icon: Icons.explore_outlined, label: 'استكشاف'),
-          AppNavItem(icon: Icons.receipt_long_outlined, label: 'طلباتي'),
-          AppNavItem(icon: Icons.bookmark_border, label: 'المحفوظات'),
-          AppNavItem(icon: Icons.person_outline, label: 'حسابي'),
-        ],
-      ),
+      bottomNavigationBar: const StudentBottomNav(currentIndex: 1),
     );
   }
 }

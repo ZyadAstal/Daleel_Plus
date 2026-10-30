@@ -4,3 +4,5 @@
 
 export 'app_bottom_nav_bar.dart';
 export 'app_primary_button.dart';
+export 'student_bottom_nav.dart';
+export 'student_top_bar.dart';

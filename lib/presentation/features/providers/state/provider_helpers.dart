@@ -1,11 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-// مؤقت للتجربة: رقم المزود التجريبي يُستخدم إذا لم يكن هناك مستخدم مسجل.
-// بعد ربط تسجيل الدخول تصبح:
-// String get currentProviderId => FirebaseAuth.instance.currentUser!.uid;
-String get currentProviderId =>
-    FirebaseAuth.instance.currentUser?.uid ?? 'CClgjCzo2ZUZj8Y1QDiKRICSuxM2';
+String get currentProviderId => FirebaseAuth.instance.currentUser!.uid;
 
 class ProviderFormat {
   ProviderFormat._();
@@ -130,6 +126,8 @@ class ProviderFormat {
         return 'نقدًا';
       case 'bank':
         return 'تحويل بنكي';
+      case 'jawwal_pay':
+        return 'Jawwal Pay';
       default:
         return 'دفع إلكتروني';
     }
@@ -143,6 +141,8 @@ class ProviderFormat {
         return 'مدفوع جزئيًا';
       case 'pay_on_arrival':
         return 'الدفع عند الاستلام';
+      case 'awaiting_transfer':
+        return 'بانتظار التحويل';
       case 'refunded':
         return 'مسترد';
       default:
