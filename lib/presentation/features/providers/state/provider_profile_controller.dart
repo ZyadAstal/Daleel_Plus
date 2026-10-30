@@ -123,7 +123,7 @@ class ProviderProfileController extends GetxController {
 
   void _listenToCourses() {
     final subscription = _db
-        .collection('courses')
+        .collection('Courses')
         .where('providerId', isEqualTo: providerId)
         .snapshots()
         .listen((result) {

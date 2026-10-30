@@ -4,6 +4,7 @@ import 'profile_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:daleel_plus/data/repositories/session_preferences.dart';
@@ -169,6 +170,7 @@ class FirebaseAuthRepository extends GetxService implements AuthRepository {
   @override
   Future<void> resetPassword(String email) =>
       _auth.sendPasswordResetEmail(email: email.trim());
+
   @override
   Future<void> signOut() async {
     await _auth.signOut();
@@ -182,10 +184,10 @@ String authErrorMessage(Object error) {
   if (error is ProfileSaveFailure) {
     return 'تم إنشاء الحساب، لكن تعذّر حفظ الملف. يمكنك إكمال بياناتك من صفحة الحساب.';
   }
-  if (error is GoogleSignInException) {
-    return error.code == GoogleSignInExceptionCode.canceled
-        ? 'تم إلغاء تسجيل الدخول بجوجل.'
-        : 'تعذّر الدخول بجوجل. تحقق من الاتصال وإعدادات التطبيق.';
+  if (error is PlatformException) {
+    if (error.code == 'canceled' || error.code == 'sign_in_canceled') {
+      return 'تم إلغاء تسجيل الدخول بجوجل.';
+    }
   }
   if (error is FirebaseException) {
     return switch (error.code) {

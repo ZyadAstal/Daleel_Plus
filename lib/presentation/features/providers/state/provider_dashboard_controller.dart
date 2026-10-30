@@ -213,7 +213,7 @@ class ProviderDashboardController extends GetxController {
 
   void _listenToCourses() {
     final subscription = _db
-        .collection('courses')
+        .collection('Courses')
         .where('providerId', isEqualTo: providerId)
         .snapshots()
         .listen((result) {
@@ -277,7 +277,7 @@ class ProviderDashboardController extends GetxController {
 
       final courseId = (order['courseId'] ?? '').toString();
       if (courseId.isNotEmpty) {
-        await _db.collection('courses').doc(courseId).update({
+        await _db.collection('Courses').doc(courseId).update({
           'bookedSeats': FieldValue.increment(1),
           'updatedAt': Timestamp.now(),
         });

@@ -30,7 +30,7 @@ class CourseDetailsController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
-      final doc = await _db.collection('courses').doc(courseId).get();
+      final doc = await _db.collection('Courses').doc(courseId).get();
       if (doc.exists && doc.data() != null) {
         final data = doc.data()!;
         course.value = data;

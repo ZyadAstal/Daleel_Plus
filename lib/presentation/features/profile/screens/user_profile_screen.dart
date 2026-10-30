@@ -265,12 +265,14 @@ class UserProfileScreen extends StatelessWidget {
                   border: Border.all(color: AppColors.primary, width: 2),
                 ),
                 child: ClipOval(
-                  child: Image.network(
-                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: AppColors.surfaceSubdued,
-                      child: const Icon(Icons.person, size: 32, color: AppColors.primary),
+                  child: Obx(
+                    () => Image.network(
+                      controller.avatarUrl.value,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: AppColors.surfaceSubdued,
+                        child: const Icon(Icons.person, size: 32, color: AppColors.primary),
+                      ),
                     ),
                   ),
                 ),

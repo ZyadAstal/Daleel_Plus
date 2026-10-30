@@ -110,7 +110,7 @@ class ProviderServicesController extends GetxController {
 
   void _listenToCourses() {
     final subscription = _db
-        .collection('courses')
+        .collection('Courses')
         .where('providerId', isEqualTo: providerId)
         .snapshots()
         .listen((result) {
@@ -160,7 +160,7 @@ class ProviderServicesController extends GetxController {
 
   Future<void> changeActive(Map<String, dynamic> course, bool value) async {
     try {
-      await _db.collection('courses').doc(course['id']).update({
+      await _db.collection('Courses').doc(course['id']).update({
         'isActive': value,
         'updatedAt': Timestamp.now(),
       });
@@ -172,7 +172,7 @@ class ProviderServicesController extends GetxController {
 
   Future<void> deleteCourse(Map<String, dynamic> course) async {
     try {
-      await _db.collection('courses').doc(course['id']).delete();
+      await _db.collection('Courses').doc(course['id']).delete();
       Get.snackbar('تم', 'تم حذف ${course['title'] ?? 'الخدمة'}');
     } catch (e) {
       debugPrint('ProviderServicesController: $e');

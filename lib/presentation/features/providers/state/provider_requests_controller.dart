@@ -176,7 +176,7 @@ class ProviderRequestsController extends GetxController {
     if (!accepted || courseId.isEmpty) return;
 
     try {
-      await _db.collection('courses').doc(courseId).update({
+      await _db.collection('Courses').doc(courseId).update({
         'bookedSeats': FieldValue.increment(1),
         'updatedAt': Timestamp.now(),
       });

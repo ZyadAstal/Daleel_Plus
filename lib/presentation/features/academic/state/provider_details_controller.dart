@@ -40,21 +40,28 @@ class ProviderDetailsController extends GetxController {
     return 'https://lh3.googleusercontent.com/d/1bLABQ-fHEWX_x1MDPhe8XQGUMyC1DrRb';
   }
 
-  List<String> get categories => [
-        'الكل',
-        'برمجة وويب',
-        'ذكاء اصطناعي',
-        'تصميم UI/UX',
-        'إدارة تقنية',
-      ];
+  List<String> get categories {
+    final list = <String>['الكل'];
+    for (final c in courses) {
+      final cat = (c['category_subtag'] ?? c['categorySubtag'] ?? c['category'] ?? c['domain'])?.toString().trim();
+      if (cat != null && cat.isNotEmpty && !list.contains(cat)) {
+        list.add(cat);
+      }
+    }
+    return list;
+  }
 
   List<Map<String, dynamic>> get filteredCourses {
-    if (selectedCategory.value == 'الكل') {
+    if (selectedCategory.value == 'الكل' || selectedCategory.value.trim().isEmpty) {
       return courses;
     }
+    final selected = selectedCategory.value.trim().toLowerCase();
     return courses.where((c) {
-      final category = c['category'] ?? c['domain'] ?? '';
-      return category.toString().contains(selectedCategory.value);
+      final cat = (c['category_subtag'] ?? c['categorySubtag'] ?? c['category'] ?? c['domain'] ?? '').toString().toLowerCase();
+      final title = (c['title'] ?? c['name'] ?? '').toString().toLowerCase();
+      final desc = (c['description'] ?? c['details'] ?? '').toString().toLowerCase();
+
+      return cat.contains(selected) || title.contains(selected) || desc.contains(selected);
     }).toList();
   }
 
@@ -77,19 +84,30 @@ class ProviderDetailsController extends GetxController {
         provider.value = _fallbackProviderData();
       }
 
-      // 2. Fetch courses for this provider
-      final coursesSnapshot = await _db
-          .collection('courses')
-          .where('providerId', isEqualTo: providerId)
-          .get();
+      // 2. Fetch ALL courses from Firebase without any ID or providerId filter
+      final List<Map<String, dynamic>> allFirebaseCourses = [];
 
-      if (coursesSnapshot.docs.isNotEmpty) {
-        courses.value = coursesSnapshot.docs
-            .map((d) => {...d.data(), 'id': d.id})
-            .toList();
-      } else {
-        courses.value = _fallbackCoursesData();
+      try {
+        final snap1 = await _db.collection('Courses').get();
+        for (final d in snap1.docs) {
+          allFirebaseCourses.add({...d.data(), 'id': d.id});
+        }
+      } catch (e) {
+        debugPrint('Error loading Courses collection: $e');
       }
+
+      try {
+        final snap2 = await _db.collection('courses').get();
+        for (final d in snap2.docs) {
+          if (!allFirebaseCourses.any((item) => item['id'] == d.id)) {
+            allFirebaseCourses.add({...d.data(), 'id': d.id});
+          }
+        }
+      } catch (e) {
+        debugPrint('Error loading courses collection: $e');
+      }
+
+      courses.value = allFirebaseCourses;
 
       // 3. Fetch reviews for this provider
       final reviewsSnapshot = await _db
@@ -106,9 +124,8 @@ class ProviderDetailsController extends GetxController {
       }
     } catch (e) {
       debugPrint('ProviderDetailsController error: $e');
-      provider.value = _fallbackProviderData();
-      courses.value = _fallbackCoursesData();
-      reviews.value = _fallbackReviewsData();
+      if (provider.value.isEmpty) provider.value = _fallbackProviderData();
+      if (reviews.value.isEmpty) reviews.value = _fallbackReviewsData();
     } finally {
       isLoading.value = false;
     }

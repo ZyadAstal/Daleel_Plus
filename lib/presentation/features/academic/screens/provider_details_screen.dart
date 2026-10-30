@@ -388,14 +388,14 @@ class ProviderDetailsScreen extends StatelessWidget {
         const SizedBox(height: AppSizes.space16),
         SizedBox(
           height: 42,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            shrinkWrap: true,
-            physics: const BouncingScrollPhysics(),
-            itemCount: controller.categories.length,
-            itemBuilder: (context, index) {
-              final cat = controller.categories[index];
-              return Obx(() {
+          child: Obx(
+            () => ListView.builder(
+              scrollDirection: Axis.horizontal,
+              shrinkWrap: true,
+              physics: const BouncingScrollPhysics(),
+              itemCount: controller.categories.length,
+              itemBuilder: (context, index) {
+                final cat = controller.categories[index];
                 final isSelected = controller.selectedCategory.value == cat;
                 return Padding(
                   padding: const EdgeInsets.only(left: 8),
@@ -418,8 +418,8 @@ class ProviderDetailsScreen extends StatelessWidget {
                     ),
                   ),
                 );
-              });
-            },
+              },
+            ),
           ),
         ),
         const SizedBox(height: AppSizes.space16),
@@ -445,13 +445,14 @@ class ProviderDetailsScreen extends StatelessWidget {
   }
 
   Widget _buildCourseCard(ProviderDetailsController controller, Map<String, dynamic> course) {
-    final badge = course['badge'];
-    final discount = course['discount'];
-    final title = course['title'] ?? '';
-    final description = course['description'] ?? '';
-    final duration = course['duration'] ?? '';
-    final price = course['price'];
-    final oldPrice = course['oldPrice'];
+    final badge = course['badge'] ?? course['category_subtag'] ?? course['categorySubtag'] ?? course['category'];
+    final discount = course['discount'] ?? ((course['discounted_price'] != null || course['discountedPrice'] != null) ? 'خصم خاص' : null);
+    final title = course['title'] ?? course['name'] ?? '';
+    final description = course['description'] ?? course['details'] ?? '';
+    final totalHours = course['total_hours'] ?? course['totalHours'];
+    final duration = course['duration'] ?? (totalHours != null ? '$totalHours ساعة تدريبية' : '');
+    final price = course['price'] ?? course['discounted_price'] ?? course['discountedPrice'] ?? course['original_price'] ?? course['originalPrice'];
+    final oldPrice = course['oldPrice'] ?? ((course['discounted_price'] != null || course['discountedPrice'] != null) ? course['original_price'] ?? course['originalPrice'] : null);
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSizes.space16),

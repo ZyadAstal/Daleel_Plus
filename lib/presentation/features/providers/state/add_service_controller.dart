@@ -300,9 +300,9 @@ class AddServiceController extends GetxController {
       final data = _buildData(publish ? 'published' : 'draft');
 
       if (isEditing) {
-        await _db.collection('courses').doc(editingCourse!['id']).update(data);
+        await _db.collection('Courses').doc(editingCourse!['id']).update(data);
       } else {
-        await _db.collection('courses').add({
+        await _db.collection('Courses').add({
           ...data,
           'bookedSeats': 0,
           'waitlistCount': 0,

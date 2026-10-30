@@ -106,10 +106,13 @@ class CourseModel {
   // Arabic display for Cancellation Policy
   String get cancellationPolicyText {
     switch (cancellationPolicy) {
+      case 'half_refund_first_session':
       case 'half_Refund_First_session':
         return 'استرداد 50% بعد الجلسة الأولى';
+      case 'custom':
       case 'Custom':
         return 'سياسة إلغاء مخصصة للمركز';
+      case 'full_refund_48h':
       case 'Full_Refund_48h':
       default:
         return 'استرداد كامل قبل 48 ساعة';
@@ -124,45 +127,68 @@ class CourseModel {
       return null;
     }
 
+    double parseNumToDouble(dynamic value, [double fallback = 0.0]) {
+      if (value == null) return fallback;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? fallback;
+      return fallback;
+    }
+
+    double? parseNullableDouble(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value);
+      return null;
+    }
+
+    int parseNumToInt(dynamic value, [int fallback = 0]) {
+      if (value == null) return fallback;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? fallback;
+      return fallback;
+    }
+
     return CourseModel(
-      id: docId ?? (map['id'] ?? '').toString(),
+      id: docId ?? (map['id'] ?? map['document_id'] ?? '').toString(),
       providerId: (map['provider_id'] ?? map['providerId'] ?? '').toString(),
-      title: (map['title'] ?? '').toString(),
-      categorySubtag: (map['category_subtag'] ?? map['category'] ?? '').toString(),
-      description: (map['description'] ?? '').toString(),
-      syllabusPdfUrl: map['syllabus_pdf_url']?.toString(),
-      coverImageUrl: (map['cover_image_url'] ?? map['imageUrl'] ?? '').toString(),
-      originalPrice: (map['original_price'] ?? map['price'] ?? 0).toDouble(),
-      discountedPrice: map['discounted_price'] != null
-          ? (map['discounted_price']).toDouble()
-          : null,
-      attendanceMode: (map['attendance_mode'] ?? 'in_person').toString(),
-      venueName: map['venue_name']?.toString(),
-      virtualMeetingUrl: map['virtual_meeting_url']?.toString(),
-      startDate: parseDate(map['start_date']),
-      endDate: parseDate(map['end_date']),
-      scheduleDays: (map['schedule_days'] as List?)
+      title: (map['title'] ?? map['name'] ?? '').toString(),
+      categorySubtag: (map['categorySubtag'] ?? map['category_subtag'] ?? map['category'] ?? '').toString(),
+      description: (map['description'] ?? map['details'] ?? '').toString(),
+      syllabusPdfUrl: (map['syllabusPdfUrl'] ?? map['syllabus_pdf_url'])?.toString(),
+      coverImageUrl: (() {
+        final raw = (map['coverImageUrl'] ?? map['cover_image_url'] ?? map['imageUrl'] ?? map['image'] ?? '').toString();
+        return raw.trim().isNotEmpty
+            ? raw
+            : 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80';
+      })(),
+      originalPrice: parseNumToDouble(map['originalPrice'] ?? map['original_price'] ?? map['price']),
+      discountedPrice: parseNullableDouble(map['discountedPrice'] ?? map['discounted_price']),
+      attendanceMode: (map['attendanceMode'] ?? map['attendance_mode'] ?? 'in_person').toString(),
+      venueName: (map['venueName'] ?? map['venue_name'])?.toString(),
+      virtualMeetingUrl: (map['virtualMeetingUrl'] ?? map['virtual_meeting_url'])?.toString(),
+      startDate: parseDate(map['startDate'] ?? map['start_date']),
+      endDate: parseDate(map['endDate'] ?? map['end_date']),
+      scheduleDays: ((map['scheduleDays'] ?? map['schedule_days']) as List?)
               ?.map((e) => e.toString())
               .toList() ??
           [],
-      startTime: (map['start_time'] ?? '').toString(),
-      endTime: (map['end_time'] ?? '').toString(),
-      totalHours: (map['total_hours'] ?? map['duration'] ?? 0) is int
-          ? (map['total_hours'] ?? 0) as int
-          : int.tryParse((map['total_hours'] ?? 0).toString()) ?? 0,
-      targetLevel: (map['target_level'] ?? 'beginner').toString(),
-      prerequisites: map['prerequisites']?.toString(),
-      targetAudiences: (map['target_audiences'] as List?)
+      startTime: (map['startTime'] ?? map['start_time'] ?? '').toString(),
+      endTime: (map['endTime'] ?? map['end_time'] ?? '').toString(),
+      totalHours: parseNumToInt(map['totalHours'] ?? map['total_hours'] ?? map['duration']),
+      targetLevel: (map['targetLevel'] ?? map['target_level'] ?? 'beginner').toString(),
+      prerequisites: (map['prerequisites'])?.toString(),
+      targetAudiences: ((map['targetAudiences'] ?? map['target_audiences']) as List?)
               ?.map((e) => e.toString())
               .toList() ??
           [],
-      instructorName: map['instructor_name']?.toString(),
-      instructorAvatar: map['instructor_avatar']?.toString(),
-      hasAccreditedCertificate: map['has_accredited_certificate'] ?? true,
+      instructorName: (map['instructorName'] ?? map['instructor_name'])?.toString(),
+      instructorAvatar: (map['instructorAvatar'] ?? map['instructor_avatar'])?.toString(),
+      hasAccreditedCertificate: map['hasAccreditedCertificate'] ?? map['has_accredited_certificate'] ?? true,
       cancellationPolicy:
-          (map['cancellation_policy'] ?? 'Full_Refund_48h').toString(),
-      isActive: map['is_active'] ?? true,
-      createdAt: parseDate(map['created_at']),
+          (map['cancellationPolicy'] ?? map['cancellation_policy'] ?? 'Full_Refund_48h').toString(),
+      isActive: map['isActive'] ?? map['is_active'] ?? true,
+      createdAt: parseDate(map['createdAt'] ?? map['created_at']),
     );
   }
 
@@ -261,5 +287,10 @@ class CourseModel {
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
     );
+  }
+
+  @override
+  String toString() {
+    return 'CourseModel(id: $id, title: $title, categorySubtag: $categorySubtag, originalPrice: $originalPrice, discountedPrice: $discountedPrice, attendanceMode: $attendanceMode, totalHours: $totalHours, instructorName: $instructorName, coverImageUrl: $coverImageUrl)';
   }
 }

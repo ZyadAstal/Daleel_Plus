@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:daleel_plus/data/repositories/auth_repository.dart';
 import 'package:daleel_plus/presentation/features/auth/widgets/auth_widgets.dart';
 import 'package:daleel_plus/presentation/features/auth/screens/auth_screen.dart';
 import 'package:daleel_plus/presentation/features/onboarding/screens/welcome_screen.dart';
-import 'package:daleel_plus/presentation/features/auth/screens/email_verification_screen.dart';
 import 'package:daleel_plus/presentation/features/auth/state/auth_gate_controller.dart';
-
-import 'package:daleel_plus/presentation/features/profile/screens/profile_screen.dart';
+import 'package:daleel_plus/presentation/features/profile/screens/user_profile_screen.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -17,23 +14,13 @@ class AuthGate extends StatelessWidget {
     global: false,
     dispose: (state) => state.controller?.onDelete(),
     builder: (c) {
-      final service = Get.find<AuthRepository>();
       if (c.sessionError) {
         return MobilePage(
           child: Center(child: Text('تعذّر تحميل الجلسة. أعد فتح التطبيق.')),
         );
       }
       if (c.signedIn) {
-        if (service.needsEmailVerification) {
-          return EmailVerificationScreen();
-        }
-        return service.needsPassword
-            ? AuthScreen(
-                register: true,
-                completeProfile: true,
-                passwordSetup: true,
-              )
-            : ProfileScreen();
+        return const UserProfileScreen();
       }
       if (c.preferencesError) {
         return MobilePage(
