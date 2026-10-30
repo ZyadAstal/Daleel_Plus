@@ -4,10 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
-// مؤقت للتجربة: رقم الطالب التجريبي يُستخدم إذا لم يكن هناك مستخدم مسجل.
-// بعد ربط تسجيل الدخول تصبح:
-// String get currentStudentId => FirebaseAuth.instance.currentUser!.uid;
-String get currentStudentId => FirebaseAuth.instance.currentUser?.uid ?? 'test_student';
+String get currentStudentId => FirebaseAuth.instance.currentUser!.uid;
 
 enum PrintFilter { all, research, engineering }
 
@@ -188,5 +185,15 @@ class PrintCentersController extends GetxController {
       debugPrint('PrintCentersController: $e');
       Get.snackbar('خطأ', 'لم يتم حفظ التغيير، حاول مرة أخرى');
     }
+  }
+
+  void retry() {
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
+    errorMessage.value = '';
+    isLoading.value = true;
+    onInit();
   }
 }

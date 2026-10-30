@@ -124,7 +124,7 @@ class PrintOrderController extends GetxController {
     isSubmitting.value = true;
 
     try {
-      final studentSnapshot = await _db.collection('users').doc(currentStudentId).get();
+      final studentSnapshot = await _db.collection('Users').doc(currentStudentId).get();
       final student = studentSnapshot.data() ?? {};
       final now = DateTime.now();
 

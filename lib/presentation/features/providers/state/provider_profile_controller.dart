@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:daleel_plus/data/repositories/auth_repository.dart';
+import 'package:daleel_plus/presentation/features/auth/screens/auth_gate.dart';
 import 'provider_helpers.dart';
 
 class ProviderProfileController extends GetxController {
@@ -210,8 +211,12 @@ class ProviderProfileController extends GetxController {
   }
 
   Future<void> logout() async {
-    await FirebaseAuth.instance.signOut();
-    // بعد تجهيز شاشة تسجيل الدخول من فريق auth:
-    // Get.offAll(() => const LoginScreen());
+    try {
+      await Get.find<AuthRepository>().signOut();
+      Get.offAll<void>(() => const AuthGate());
+    } catch (e) {
+      debugPrint('ProviderProfileController: $e');
+      Get.snackbar('خطأ', 'لم يتم تسجيل الخروج، حاول مرة أخرى');
+    }
   }
 }

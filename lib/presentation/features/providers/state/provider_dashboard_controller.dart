@@ -99,7 +99,7 @@ class ProviderDashboardController extends GetxController {
     final providerSnapshot = await _providerDoc.get();
     if (providerSnapshot.exists) return;
 
-    final userSnapshot = await _db.collection('users').doc(providerId).get();
+    final userSnapshot = await _db.collection('Users').doc(providerId).get();
     final user = userSnapshot.data() ?? {};
 
     final locationParts = (user['location'] ?? '').toString().split(' - ');
