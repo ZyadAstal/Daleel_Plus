@@ -33,7 +33,7 @@ class AuthGate extends StatelessWidget {
                 completeProfile: true,
                 passwordSetup: true,
               )
-            : ProfileScreen();
+            : ProfileScreen(openHome: true);
       }
       if (c.preferencesError) {
         return MobilePage(

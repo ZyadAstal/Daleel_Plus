@@ -6,15 +6,33 @@ import 'package:get/get.dart';
 import 'package:daleel_plus/data/repositories/auth_repository.dart';
 import 'package:daleel_plus/presentation/features/auth/widgets/auth_widgets.dart';
 import 'package:daleel_plus/presentation/features/profile/state/profile_controller.dart';
+import 'package:daleel_plus/presentation/features/discovery/screens/student_home_screen.dart';
+import 'package:daleel_plus/presentation/features/providers/screens/provider_dashboard_screen.dart';
+
+import 'account_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  final bool openHome;
+
+  const ProfileScreen({super.key, this.openHome = false});
   @override
   Widget build(BuildContext context) => GetBuilder<ProfileController>(
     init: ProfileController(),
     global: false,
     dispose: (state) => state.controller?.onDelete(),
-    builder: (c) => _render(context, c),
+    builder: (c) {
+      if (!c.loading && c.error == null && c.isComplete(c.profile)) {
+        final isProvider = c.profile!['accountType'] == 'provider';
+        if (openHome) {
+          return isProvider
+              ? const ProviderDashboardScreen()
+              : const StudentHomeScreen();
+        }
+        // من تبويب حسابي: الطالب يشوف شاشة حسابي حسب التصميم
+        if (!isProvider) return const AccountScreen();
+      }
+      return _render(context, c);
+    },
   );
   Widget _render(BuildContext context, ProfileController c) => MobilePage(
     child: SingleChildScrollView(
