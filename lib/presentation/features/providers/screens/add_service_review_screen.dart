@@ -64,22 +64,25 @@ class AddServiceReviewScreen extends StatelessWidget {
             const _QualityNote(),
             const SizedBox(height: AppSizes.space24),
             Obx(
-                  () => AppPrimaryButton(
+              () => AppPrimaryButton(
                 text: controller.isEditing ? 'حفظ التعديلات ونشرها' : 'نشر الخدمة الآن واعتمادها',
                 icon: Icons.rocket_launch_outlined,
-                isLoading: controller.isSaving.value,
-                onPressed: () => _save(controller, publish: true),
+                isLoading: controller.savingAction.value == 'publish',
+                onPressed: controller.isSaving.value ? null : () => _save(controller, publish: true),
               ),
             ),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
-                  child: AppPrimaryButton(
-                    text: 'حفظ كمسودة',
-                    icon: Icons.bookmark_border,
-                    isSecondary: true,
-                    onPressed: () => _save(controller, publish: false),
+                  child: Obx(
+                    () => AppPrimaryButton(
+                      text: 'حفظ كمسودة',
+                      icon: Icons.bookmark_border,
+                      isSecondary: true,
+                      isLoading: controller.savingAction.value == 'draft',
+                      onPressed: controller.isSaving.value ? null : () => _save(controller, publish: false),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -87,7 +90,11 @@ class AddServiceReviewScreen extends StatelessWidget {
                   child: SizedBox(
                     height: AppSizes.buttonHeight,
                     child: OutlinedButton.icon(
-                      onPressed: () => Get.back(),
+                      onPressed: () {
+                        // نرجع لشاشة الجدولة ونطلع لأولها (قسم المواعيد)
+                        if (controller.scheduleScroll.hasClients) controller.scheduleScroll.jumpTo(0);
+                        Get.back();
+                      },
                       icon: const Icon(Icons.edit_calendar_outlined, size: 20),
                       label: const Text('تعديل الجدولة'),
                       style: OutlinedButton.styleFrom(
@@ -297,14 +304,14 @@ class _PreviewCard extends StatelessWidget {
                   const Divider(height: 28, color: AppColors.border),
                   Row(
                     children: [
-                      Text(
+                      Flexible(child: Text(
                         '${ProviderFormat.number(hasDiscount ? controller.studentPrice.value : controller.price.value)} شيكل',
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
                           color: AppColors.primary,
                         ),
-                      ),
+                      )),
                       if (hasDiscount) ...[
                         const SizedBox(width: AppSizes.space8),
                         Text(
@@ -363,12 +370,12 @@ class _PreviewCard extends StatelessWidget {
   }
 
   Widget _overlayChip(
-      String text,
-      IconData icon, {
-        required Color background,
-        Color foreground = AppColors.white,
-        Color? iconColor,
-      }) {
+    String text,
+    IconData icon, {
+    required Color background,
+    Color foreground = AppColors.white,
+    Color? iconColor,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -405,9 +412,9 @@ class _CancellationPolicies extends StatelessWidget {
 
   static const Map<String, String> _descriptions = {
     'full_refund_48h':
-    'يمنح الطالب مرونة الانسحاب واستعادة المبلغ كاملًا، مما يرفع معدل التسجيل بنسبة 35% حسب إحصائيات خطوتي.',
+        'يمنح الطالب مرونة الانسحاب واستعادة المبلغ كاملًا، مما يرفع معدل التسجيل بنسبة 35% حسب إحصائيات دليل+.',
     'half_refund_first_session':
-    'إذا رغب الطالب في الانسحاب بعد تجربة المحاضرة الأولى، يتم استرداد نصف المبلغ المدفوع.',
+        'إذا رغب الطالب في الانسحاب بعد تجربة المحاضرة الأولى، يتم استرداد نصف المبلغ المدفوع.',
     'custom': 'تطبيق بنود اللائحة الداخلية لمركز التدريب والتنسيق المباشر مع شؤون الطلاب.',
   };
 
@@ -437,7 +444,7 @@ class _CancellationPolicies extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Obx(
-              () => Column(
+          () => Column(
             children: _titles.keys.map((policy) {
               final isSelected = controller.cancellationPolicy.value == policy;
 
@@ -628,7 +635,7 @@ class _Attachments extends StatelessWidget {
                   children: [
                     Icon(Icons.check, size: 12, color: AppColors.success),
                     SizedBox(width: 2),
-                    Text('جاهز للتنزيل', style: TextStyle(fontSize: 10, color: AppColors.success)),
+                    Flexible(child: Text('جاهز للتنزيل', style: TextStyle(fontSize: 10, color: AppColors.success))),
                   ],
                 ),
               ],
@@ -665,10 +672,10 @@ class _LaunchSettings extends StatelessWidget {
           children: [
             Icon(Icons.tune, color: AppColors.primary, size: 22),
             SizedBox(width: AppSizes.space8),
-            Text(
+            Flexible(child: Text(
               'إعدادات الإطلاق والتسجيل',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            ),
+            )),
           ],
         ),
         const SizedBox(height: 12),
@@ -679,7 +686,7 @@ class _LaunchSettings extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Obx(
-                () => Column(
+            () => Column(
               children: [
                 _settingRow(
                   icon: Icons.campaign_outlined,
@@ -763,7 +770,7 @@ class _QualityNote extends StatelessWidget {
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary),
                 ),
                 Text(
-                  'تخضع كافة الخدمات المنشورة لمراجعة فريق الجودة في خطوتي لضمان حقوق الطلاب والمراكز على حد سواء.',
+                  'تخضع كافة الخدمات المنشورة لمراجعة فريق الجودة في دليل+ لضمان حقوق الطلاب والمراكز على حد سواء.',
                   style: TextStyle(fontSize: 11, color: AppColors.primary, height: 1.6),
                 ),
               ],

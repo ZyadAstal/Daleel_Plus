@@ -240,7 +240,7 @@ class JobDetailsScreen extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              childAspectRatio: 1.35,
+              childAspectRatio: 1.1,
               children: [
                 _StatCard(
                   icon: Icons.payments_outlined,
@@ -489,14 +489,14 @@ class JobDetailsScreen extends StatelessWidget {
                           size: 20,
                         ),
                         const SizedBox(width: 6),
-                        Text(
+                        Flexible(child: Text(
                           applied
                               ? 'تم إرسال طلبك (قيد المراجعة)'
                               : isOpen
                               ? 'التقديم السريع الآن (إرفاق CV)'
                               : 'انتهى التقديم',
                           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.white),
-                        ),
+                        )),
                       ],
                     ),
                   ),
@@ -572,7 +572,7 @@ class _Title extends StatelessWidget {
       children: [
         Container(width: 4, height: 20, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4))),
         const SizedBox(width: AppSizes.space8),
-        Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+        Flexible(child: Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary))),
       ],
     );
   }

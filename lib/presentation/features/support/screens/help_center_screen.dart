@@ -553,7 +553,7 @@ class HelpCenterScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
+                          Flexible(child: Text(
                             controller.isSending.value
                                 ? 'جارٍ الإرسال...'
                                 : 'إرسال التذكرة لفريق الدعم',
@@ -562,7 +562,7 @@ class HelpCenterScreen extends StatelessWidget {
                               fontWeight: FontWeight.w800,
                               color: AppColors.white,
                             ),
-                          ),
+                          )),
                           const SizedBox(width: 6),
                           const Icon(
                             Icons.send_outlined,

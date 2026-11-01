@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:daleel_plus/data/repositories/auth_repository.dart';
 import 'package:daleel_plus/presentation/features/auth/screens/auth_gate.dart';
 import 'provider_helpers.dart';
+import 'provider_notifications_controller.dart';
 
 class ProviderProfileController extends GetxController {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -20,6 +21,7 @@ class ProviderProfileController extends GetxController {
   final completedOrders = 0.obs;
   final publishedCourses = <Map<String, dynamic>>[].obs;
   final availableBalance = 0.0.obs;
+  final transactions = <Map<String, dynamic>>[].obs;
   final lastPayoutDate = Rxn<DateTime>();
 
   String field(String key) => (provider[key] ?? '').toString();
@@ -27,7 +29,7 @@ class ProviderProfileController extends GetxController {
   bool get isVerified => provider['verificationStatus'] == 'verified';
   bool get isAvailable => provider['isAcceptingOrders'] ?? true;
   double get rating => (provider['averageRating'] ?? 0).toDouble();
-  int get reviewsCount => provider['reviewsCount'] ?? 0;
+  int get reviewsCount => ((provider['ratingsCount'] ?? provider['reviewsCount'] ?? 0) as num).toInt();
 
   List<Map<String, dynamic>> get instructors {
     final List list = provider['instructors'] ?? [];
@@ -146,6 +148,14 @@ class ProviderProfileController extends GetxController {
       double balance = 0;
       DateTime? lastPayout;
 
+      // سجل الحركات المالية (الأحدث أول)
+      transactions.value = result.docs.map((doc) => doc.data()).toList()
+        ..sort((a, b) {
+          final first = a['createdAt'] as Timestamp? ?? Timestamp(0, 0);
+          final second = b['createdAt'] as Timestamp? ?? Timestamp(0, 0);
+          return second.compareTo(first);
+        });
+
       for (final doc in result.docs) {
         final data = doc.data();
         final amount = (data['netProviderAmount'] ?? 0).toDouble();
@@ -175,10 +185,11 @@ class ProviderProfileController extends GetxController {
   Future<bool> _updateProvider(Map<String, dynamic> data) async {
     isSaving.value = true;
     try {
-      await _db.collection('serviceProviders').doc(providerId).update({
+      // set + merge: بيشتغل حتى لو ملف المزود لسه مش موجود
+      await _db.collection('serviceProviders').doc(providerId).set({
         ...data,
         'updatedAt': Timestamp.now(),
-      });
+      }, SetOptions(merge: true));
       Get.snackbar('تم', 'تم حفظ التغييرات');
       return true;
     } catch (e) {
@@ -194,11 +205,13 @@ class ProviderProfileController extends GetxController {
     required List<String> days,
     required String openingTime,
     required String closingTime,
+    required bool acceptingOrders,
   }) {
     return _updateProvider({
       'workingDays': days,
       'openingTime': openingTime,
       'closingTime': closingTime,
+      'isAcceptingOrders': acceptingOrders,
     });
   }
 
@@ -210,13 +223,61 @@ class ProviderProfileController extends GetxController {
     return _updateProvider({'whatsappNumber': number.trim()});
   }
 
+  // تعديل الملف: data فيها الحقول اللي تغيرت (الاسم، النبذة، العنوان...)
+  Future<bool> saveProfile(Map<String, dynamic> data) => _updateProvider(data);
+
+  // المدربين محفوظين كقائمة جوا ملف المزود، فبنحفظ القائمة كاملة بعد كل تعديل
+  Future<bool> addInstructor({required String name, required String title}) {
+    final list = [
+      ...instructors,
+      {'name': name.trim(), 'title': title.trim(), 'avatarUrl': '', 'isActive': true},
+    ];
+    return _updateProvider({'instructors': list});
+  }
+
+  Future<bool> toggleInstructor(int index) {
+    final list = instructors;
+    list[index]['isActive'] = !(list[index]['isActive'] ?? false);
+    return _updateProvider({'instructors': list});
+  }
+
+  Future<bool> removeInstructor(int index) {
+    final list = instructors..removeAt(index);
+    return _updateProvider({'instructors': list});
+  }
+
+  // نص مشاركة المركز (بينسخ للحافظة)
+  String get shareText {
+    final lines = [
+      field('businessName'),
+      if (field('headline').isNotEmpty) field('headline'),
+      if (location.isNotEmpty) '📍 $location',
+      if (field('whatsappNumber').isNotEmpty) '📞 ${field('whatsappNumber')}',
+      'احجز خدماتنا عبر تطبيق دليل+',
+    ];
+    return lines.join('\n');
+  }
+
   Future<void> logout() async {
     try {
+      // نوقف إشعارات المزود قبل الخروج عشان ما تضل تسمع لحساب مسكّر
+      Get.delete<ProviderNotificationsController>(force: true);
       await Get.find<AuthRepository>().signOut();
       Get.offAll<void>(() => const AuthGate());
     } catch (e) {
       debugPrint('ProviderProfileController: $e');
       Get.snackbar('خطأ', 'لم يتم تسجيل الخروج، حاول مرة أخرى');
     }
+  }
+
+  // زر "إعادة المحاولة" بشاشة الخطأ
+  void retry() {
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
+    errorMessage.value = '';
+    isLoading.value = true;
+    onInit();
   }
 }

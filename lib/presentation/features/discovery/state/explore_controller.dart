@@ -63,7 +63,7 @@ class ExploreController extends GetxController {
   List<String> get tutorSubjects => _distinct(tutors.expand((tutor) => subjectsOf(tutor)));
 
   List<Map<String, dynamic>> get tutors =>
-      _providers.where((provider) => provider['providerType'] == 'tutor').toList();
+      _providers.where((provider) => provider['providerType'] == 'privateTutor').toList();
 
   static List<String> subjectsOf(Map<String, dynamic> tutor) =>
       ((tutor['subjects'] ?? []) as List).map((subject) => (subject['name'] ?? '').toString()).toList();

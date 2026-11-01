@@ -36,8 +36,7 @@ class TutorProfileScreen extends StatelessWidget {
             ),
           ),
           IconButton(
-            // TODO: مشاركة ملف المدرس عند إضافة باكج share_plus
-            onPressed: () {},
+            onPressed: controller.shareTutor,
             icon: const Icon(Icons.share_outlined, color: AppColors.textPrimary),
           ),
         ],
@@ -75,7 +74,7 @@ class TutorProfileScreen extends StatelessWidget {
             const SizedBox(height: AppSizes.space16),
             _ReviewsCard(
               reviews: controller.reviews.toList(),
-              total: controller.number('reviewsCount').toInt(),
+              total: controller.ratingsCount.toInt(),
             ),
             const SizedBox(height: AppSizes.space16),
           ],
@@ -181,7 +180,7 @@ class _HeaderCard extends StatelessWidget {
     final bool isAvailable = controller.tutor['isAvailable'] ?? false;
     final bool isVerified = controller.tutor['isVerified'] ?? false;
     final rating = controller.number('averageRating');
-    final reviewsCount = controller.number('reviewsCount');
+    final reviewsCount = controller.ratingsCount;
 
     return Container(
       padding: const EdgeInsets.all(AppSizes.space16),
@@ -643,10 +642,10 @@ class _TeachingCard extends StatelessWidget {
                     children: [
                       Icon(Icons.apartment, size: 18, color: AppColors.primary),
                       SizedBox(width: 6),
-                      Text(
+                      Flexible(child: Text(
                         'قاعة التدريس المعتمدة',
                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                      ),
+                      )),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -723,8 +722,7 @@ class _MethodCard extends StatelessWidget {
           Row(
             children: [
               Icon(icon, size: 18, color: tagColor),
-              const Spacer(),
-              Text(tag, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: tagColor)),
+              Expanded(child: Text(tag, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: tagColor), textAlign: TextAlign.end)),
             ],
           ),
           const SizedBox(height: AppSizes.space8),
@@ -738,9 +736,9 @@ class _MethodCard extends StatelessWidget {
           const SizedBox(height: AppSizes.space8),
           Row(
             children: [
-              Text(price, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: priceColor)),
+              Flexible(child: Text(price, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: priceColor))),
               const SizedBox(width: 4),
-              Text(unit, style: TextStyle(fontSize: 11, color: priceColor)),
+              Flexible(child: Text(unit, style: TextStyle(fontSize: 11, color: priceColor))),
             ],
           ),
         ],
@@ -755,6 +753,30 @@ class _ReviewsCard extends StatelessWidget {
 
   const _ReviewsCard({required this.reviews, required this.total});
 
+  // كل التقييمات بنافذة من تحت
+  void _showAll() {
+    Get.bottomSheet(
+      Container(
+        constraints: BoxConstraints(maxHeight: Get.height * 0.8),
+        padding: const EdgeInsets.all(AppSizes.space16),
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: reviews.isEmpty
+            ? const Padding(
+                padding: EdgeInsets.all(AppSizes.space24),
+                child: Text('لا توجد تقييمات بعد', style: TextStyle(color: AppColors.textSecondary)),
+              )
+            : ListView(
+                shrinkWrap: true,
+                children: reviews.map((review) => _ReviewItem(review: review)).toList(),
+              ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -767,8 +789,7 @@ class _ReviewsCard extends StatelessWidget {
             color: AppColors.secondary,
             title: 'تقييمات وآراء الطلاب',
             trailing: GestureDetector(
-              // TODO: الانتقال لشاشة كل التقييمات عند تجهيزها
-              onTap: () {},
+              onTap: () => _showAll(),
               child: Text(
                 'عرض الكل ($total)',
                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary),

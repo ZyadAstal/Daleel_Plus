@@ -14,7 +14,7 @@ class AppSizes {
   static const double topBarHeight = 64;
   static const double bottomNavHeight = 80;
   static const double bottomNavGap = 32;
-  static const double navIconSize = 20;
+  static const double navIconSize = 24;
 
   // الأزرار والحقول
   static const double buttonHeight = 54;

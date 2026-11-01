@@ -8,7 +8,10 @@ import '../state/provider_services_controller.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/provider_bottom_nav.dart';
 import '../widgets/provider_top_bar.dart';
+import '../state/provider_requests_controller.dart';
 import 'add_service_basic_screen.dart';
+import 'provider_requests_screen.dart';
+import '../../app_status/screens/system_error_screen.dart';
 
 class ProviderServicesScreen extends StatelessWidget {
   const ProviderServicesScreen({super.key});
@@ -35,12 +38,15 @@ class ProviderServicesScreen extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // إذا صار خطأ: بعد تجهيز شاشة 42 من app_status استبدلي السطر الحالي بـ:
-        // if (controller.errorMessage.value.isNotEmpty) {
-        //   return const UnexpectedErrorScreen(); // شاشة 42 من app_status
-        // }
         if (controller.errorMessage.value.isNotEmpty) {
-          return Center(child: Text(controller.errorMessage.value));
+          return SystemErrorScreen(
+            description: controller.errorMessage.value,
+            showSafetyCard: false,
+            errorDetails: null,
+            apiPath: null,
+            timeoutText: null,
+            onRetry: controller.retry,
+          );
         }
 
         final courses = controller.visibleCourses;
@@ -58,8 +64,6 @@ class ProviderServicesScreen extends StatelessWidget {
               const SizedBox(height: AppSizes.space24),
               _FilterTabs(controller: controller),
               const SizedBox(height: AppSizes.space24),
-              // لا توجد نتائج للبحث: بعد تجهيز شاشة 41 من app_status استبدلي _EmptyState بـ:
-              // const NoSearchResultsScreen() // شاشة 41 من app_status
               if (courses.isEmpty)
                 _EmptyState(
                   message: controller.searchText.value.trim().isEmpty
@@ -363,7 +367,7 @@ class _ServiceCard extends StatelessWidget {
             child: Icon(icon, size: 18, color: color),
           ),
           const SizedBox(width: 10),
-          Text(
+          Flexible(child: Text(
             text,
             style: TextStyle(
               fontFamily: 'Cairo',
@@ -371,7 +375,7 @@ class _ServiceCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
               color: color == AppColors.error ? AppColors.error : AppColors.textPrimary,
             ),
-          ),
+          )),
         ],
       ),
     );
@@ -393,15 +397,17 @@ class _ServiceCard extends StatelessWidget {
     final hasDiscount = discounted != null && discounted < original && original > 0;
     final percent = hasDiscount ? ((original - discounted!) / original * 100).round() : 0;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    // Wrap: إذا ما في مكان، شارة الخصم بتنزل لسطر تاني
+    return Wrap(
+      spacing: AppSizes.space8,
+      runSpacing: 4,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         Text(
           ProviderFormat.price(hasDiscount ? discounted : original),
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: color),
         ),
         if (hasDiscount) ...[
-          const SizedBox(width: AppSizes.space8),
           Text(
             ProviderFormat.price(original),
             style: const TextStyle(
@@ -410,7 +416,6 @@ class _ServiceCard extends StatelessWidget {
               decoration: TextDecoration.lineThrough,
             ),
           ),
-          const SizedBox(width: AppSizes.space8),
           _badge('خصم $percent% للطلاب', AppColors.error, isSquare: true),
         ],
       ],
@@ -451,7 +456,11 @@ class _ServiceCard extends StatelessWidget {
                 text: 'المسجلين',
                 icon: Icons.group_outlined,
                 background: AppColors.primary.withValues(alpha: 0.12),
-                onTap: () {},
+                // طلبات هاي الدورة (بحث باسمها)
+                onTap: () => ProviderRequestsScreen.open(
+                  filter: RequestFilter.active,
+                  search: '${course['title'] ?? ''}',
+                ),
               ),
             ),
           ],
@@ -486,7 +495,10 @@ class _ServiceCard extends StatelessWidget {
                 icon: Icons.add_task,
                 background: AppColors.primary,
                 foreground: AppColors.white,
-                onTap: () {},
+                // شعبة جديدة = خدمة جديدة بنفس بيانات الدورة (بدون id فبتنحفظ كخدمة جديدة)
+                onTap: () => AddServiceBasicScreen.open(
+                  course: {...course}..remove('id'),
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -495,7 +507,7 @@ class _ServiceCard extends StatelessWidget {
                 text: 'إدارة المقاعد ($_maxSeats)',
                 icon: Icons.event_seat_outlined,
                 foreground: AppColors.textPrimary,
-                onTap: () {},
+                onTap: () => AddServiceBasicScreen.open(course: course),
               ),
             ),
           ],
@@ -507,11 +519,15 @@ class _ServiceCard extends StatelessWidget {
   Widget _hourlyBody() {
     return Column(
       children: [
-        Row(
+        // Wrap: السعر وشارة "حسب الطلب" بينزلوا لسطرين على الشاشة الضيقة
+        Wrap(
+          spacing: AppSizes.space8,
+          runSpacing: AppSizes.space8,
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             _price(color: AppColors.textPrimary),
-            const Text(' / ساعة', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-            const Spacer(),
+            const Text('/ ساعة', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -542,7 +558,10 @@ class _ServiceCard extends StatelessWidget {
             _actionButton(
               text: 'جدول المواعيد',
               icon: Icons.calendar_month_outlined,
-              onTap: () {},
+              onTap: () => ProviderRequestsScreen.open(
+                filter: RequestFilter.active,
+                search: '${course['title'] ?? ''}',
+              ),
             ),
           ],
         ),

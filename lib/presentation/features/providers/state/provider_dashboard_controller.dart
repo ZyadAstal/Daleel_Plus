@@ -121,7 +121,7 @@ class ProviderDashboardController extends GetxController {
       'licenseNumber': '',
       'verificationStatus': 'pending',
       'averageRating': 0,
-      'reviewsCount': 0,
+      'ratingsCount': 0,
       'logoUrl': '',
       'coverImageUrl': '',
       'isAcceptingOrders': true,
@@ -148,7 +148,8 @@ class ProviderDashboardController extends GetxController {
       isVerified.value = data['verificationStatus'] == 'verified';
       isAvailable.value = data['isAcceptingOrders'] ?? true;
       rating.value = (data['averageRating'] ?? 0).toDouble();
-      reviewsCount.value = data['reviewsCount'] ?? 0;
+      // التقييمات بتنحفظ بـ ratingsCount (من شاشة تقييم الطالب)
+      reviewsCount.value = ((data['ratingsCount'] ?? data['reviewsCount'] ?? 0) as num).toInt();
 
       isLoading.value = false;
     }, onError: _handleError);
@@ -284,11 +285,23 @@ class ProviderDashboardController extends GetxController {
       }
 
       Get.snackbar('تم', 'تم قبول طلب ${order['studentName'] ?? ''}');
+      await notifyStudent(order, 'تم قبول طلبك ✅', 'تم تأكيد طلبك: ${order['itemTitle'] ?? ''}');
     } catch (e) {
       debugPrint('ProviderDashboardController: $e');
       Get.snackbar('خطأ', 'لم يتم قبول الطلب، حاول مرة أخرى');
     } finally {
       acceptingOrderId.value = '';
     }
+  }
+
+  // زر "إعادة المحاولة" بشاشة الخطأ
+  void retry() {
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
+    errorMessage.value = '';
+    isLoading.value = true;
+    _start();
   }
 }

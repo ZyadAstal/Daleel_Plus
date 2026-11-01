@@ -357,10 +357,10 @@ class AddReviewScreen extends StatelessWidget {
                     : const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    Flexible(child: Text(
                       'إرسال التقييم واعتماده',
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.white),
-                    ),
+                    )),
                     SizedBox(width: 6),
                     Icon(Icons.send_outlined, size: 18, color: AppColors.white),
                   ],
@@ -484,11 +484,9 @@ class _OrderCard extends StatelessWidget {
                                 ],
                               ),
                             ),
-                          const Spacer(),
-                          Text(
+                          Expanded(child: Text(
                             '#${controller.text('orderNumber')}',
-                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                          ),
+                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary), textAlign: TextAlign.end)),
                         ],
                       ),
                       const SizedBox(height: AppSizes.space8),

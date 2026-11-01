@@ -99,9 +99,9 @@ class FilterScreen extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('0 ₪', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                        Text('400 ₪', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                        Text('800 ₪', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                        Flexible(child: Text('0 ₪', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+                        Flexible(child: Text('400 ₪', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+                        Flexible(child: Text('800 ₪', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
                       ],
                     ),
                   ),
@@ -198,14 +198,14 @@ class FilterScreen extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 const Icon(Icons.star_rounded, size: 18, color: AppColors.secondary),
-                                Text(
+                                Flexible(child: Text(
                                   ' ${value.toStringAsFixed(1)}',
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w800,
                                     color: isSelected ? AppColors.primary : AppColors.textPrimary,
                                   ),
-                                ),
+                                )),
                               ],
                             ),
                             const SizedBox(height: 2),
@@ -284,10 +284,10 @@ class FilterScreen extends StatelessWidget {
                       children: [
                         const Icon(Icons.check, size: 18, color: AppColors.white),
                         const SizedBox(width: 6),
-                        Text(
+                        Flexible(child: Text(
                           'تطبيق الفلترة (إظهار $count نتيجة)',
                           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.white),
-                        ),
+                        )),
                       ],
                     ),
                   ),

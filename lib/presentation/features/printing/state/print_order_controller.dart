@@ -134,7 +134,7 @@ class PrintOrderController extends GetxController {
         'orderStatus': 'pending',
         'providerId': center['id'],
         'studentId': currentStudentId,
-        'studentName': student['name'] ?? '',
+        'studentName': studentNameOf(student),
         'studentPhone': student['phone'] ?? '',
         'studentUniversity': student['university'] ?? '',
         'studentAvatar': '',

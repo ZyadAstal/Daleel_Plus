@@ -129,7 +129,7 @@ class _ServiceTypeGrid extends StatelessWidget {
               borderRadius: BorderRadius.circular(999),
             ),
             child: const Text(
-              'ركائز خطوتي',
+              'ركائز دليل+',
               style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.primary),
             ),
           ),
@@ -289,7 +289,7 @@ class _ContentSection extends StatelessWidget {
                       children: [
                         const Icon(Icons.category_outlined, size: 20, color: AppColors.textSecondary),
                         const SizedBox(width: 12),
-                        Text(name),
+                        Flexible(child: Text(name)),
                       ],
                     ),
                   ),
@@ -427,7 +427,7 @@ class _PricingSection extends StatelessWidget {
             Expanded(
               child: Column(
                 children: [
-                  const FormLabel('سعر طلاب خطوتي (₪)'),
+                  const FormLabel('سعر طلاب دليل+ (₪)'),
                   FormInput(
                     controller: controller.studentPriceController,
                     hint: '200',
@@ -468,7 +468,7 @@ class _PricingSection extends StatelessWidget {
                             color: AppColors.success,
                           ),
                         ),
-                        const TextSpan(text: ' لحاملي بطاقة طالب خطوتي المعتمدة.'),
+                        const TextSpan(text: ' لحاملي بطاقة طالب دليل+ المعتمدة.'),
                       ],
                     ),
                   ),

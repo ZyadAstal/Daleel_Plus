@@ -38,6 +38,9 @@ class CheckoutController extends GetxController {
 
   bool get isSession => type == 'session';
 
+  // المزود سكّر "استقبال حجوزات جديدة" من ساعات العمل
+  bool get isAccepting => provider['isAcceptingOrders'] ?? true;
+
   String text(String key) => (item[key] ?? '').toString();
 
   String get title => isSession ? 'جلسة خصوصية مع ${text('businessName')}' : text('title');
@@ -162,6 +165,15 @@ class CheckoutController extends GetxController {
   }
 
   Future<String?> confirm() async {
+    if (!isAccepting) {
+      Get.snackbar('الحجز متوقف', 'هذه الجهة لا تستقبل حجوزات جديدة حاليًا');
+      return null;
+    }
+    final start = item['startDate'];
+    if (!isSession && start is Timestamp && start.toDate().isBefore(DateTime.now())) {
+      Get.snackbar('الحجز مغلق', 'هذه الدورة بدأت ولا يمكن الحجز فيها');
+      return null;
+    }
     isSending.value = true;
     try {
       if (!isSession) {
@@ -183,7 +195,7 @@ class CheckoutController extends GetxController {
         'providerId': provider['id'] ?? '',
         'courseId': isSession ? '' : itemId,
         'studentId': currentStudentId,
-        'studentName': student['name'] ?? '',
+        'studentName': studentNameOf(student),
         'studentPhone': student['phone'] ?? '',
         'studentUniversity': student['university'] ?? '',
         'studentMajor': student['specialization'] ?? student['major'] ?? '',

@@ -6,6 +6,12 @@ import 'package:get/get.dart';
 
 String get currentStudentId => FirebaseAuth.instance.currentUser!.uid;
 
+// اسم الطالب: من مستنده بـ Users، وإذا فاضي من حساب الدخول
+String studentNameOf(Map data) {
+  final name = (data['name'] ?? '').toString();
+  return name.isNotEmpty ? name : FirebaseAuth.instance.currentUser?.displayName ?? '';
+}
+
 enum PrintFilter { all, research, engineering }
 
 enum PrintSort { rating, price }

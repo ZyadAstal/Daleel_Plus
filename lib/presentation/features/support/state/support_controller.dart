@@ -38,9 +38,9 @@ class SupportController extends GetxController {
     'suggestion': Icons.lightbulb_outline,
   };
 
-  String get whatsapp => (contact['whatsapp'] ?? '970599001234').toString();
+  String get whatsapp => (contact['whatsapp'] ?? '970597708527').toString();
 
-  String get phone => (contact['phone'] ?? '+970599001234').toString();
+  String get phone => (contact['phone'] ?? '+970597708527').toString();
 
   List<Map<String, dynamic>> get visibleFaqs {
     final query = searchText.value.trim();
@@ -149,7 +149,7 @@ class SupportController extends GetxController {
       final user = await _db.collection('Users').doc(currentStudentId).get();
       await _db.collection('supportTickets').add({
         'studentId': currentStudentId,
-        'studentName': user.data()?['name'] ?? '',
+        'studentName': studentNameOf(user.data() ?? {}),
         'type': ticketType.value,
         'details': detailsController.text.trim(),
         'attachmentUrl': attachmentUrl.value,

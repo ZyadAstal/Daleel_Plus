@@ -1,7 +1,57 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 String get currentProviderId => FirebaseAuth.instance.currentUser!.uid;
+
+// زر الدعم الفني: بيفتح واتساب الدعم (الرقم من appSettings/support بالـ Console)
+Future<void> openProviderSupport() async {
+  try {
+    final doc = await FirebaseFirestore.instance.collection('appSettings').doc('support').get();
+    final number = (doc.data()?['whatsapp'] ?? '970597708527').toString().replaceAll('+', '');
+    await launchUrl(Uri.parse('https://wa.me/$number'), mode: LaunchMode.externalApplication);
+  } catch (e) {
+    debugPrint('openProviderSupport: $e');
+    Get.snackbar('خطأ', 'تعذر فتح واتساب الدعم');
+  }
+}
+
+// إشعار للطالب لما المزود يغيّر حالة طلبه (بيظهر بصفحة إشعارات الطالب)
+// extra: حقول إضافية، مثل eventAt للموعد (بيظهر زر "إضافة للتقويم" عند الطالب)
+Future<void> notifyStudent(
+  Map<String, dynamic> order,
+  String title,
+  String body, {
+  Map<String, dynamic> extra = const {},
+}) async {
+  final studentId = (order['studentId'] ?? '').toString();
+  if (studentId.isEmpty) return;
+  const types = {'printing': 'printing', 'session': 'sessions', 'course': 'courses'};
+  try {
+    await FirebaseFirestore.instance.collection('notifications').add({
+      'studentId': studentId,
+      'providerId': currentProviderId,
+      'orderId': order['id'] ?? '',
+      'type': types[order['orderType']] ?? 'events',
+      'category': 'تحديثات طلباتك',
+      'title': title,
+      'body': body,
+      'isRead': false,
+      'createdAt': Timestamp.now(),
+      ...extra,
+    });
+  } catch (e) {
+    // الإشعار إضافي: إذا فشل، تغيير الطلب نفسه بيضل محفوظ
+    debugPrint('notifyStudent: $e');
+  }
+}
+
+// سحب الأرباح محتاج نظام تحويل بنكي، لسه مش جاهز
+void showPayoutSoon() {
+  Get.snackbar('قريبًا', 'سحب الأرباح من التطبيق سيتوفر قريبًا، تواصل مع الدعم الفني لتحويل رصيدك');
+}
 
 class ProviderFormat {
   ProviderFormat._();

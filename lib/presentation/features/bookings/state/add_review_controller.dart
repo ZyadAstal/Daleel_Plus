@@ -182,16 +182,19 @@ class AddReviewController extends GetxController {
           return {
             'averageRating': double.parse((total / (count + 1)).toStringAsFixed(2)),
             'ratingsCount': count + 1,
+            // القواعد بتتأكد من هاد الطلب: إله، مكتمل، وما انقيّم قبل
+            'lastReviewOrderId': orderId,
           };
         }
 
-        transaction.set(_db.collection('reviews').doc(), {
+        // رقم التقييم = رقم الطلب، فما بينفع يتقيّم نفس الطلب مرتين
+        transaction.set(_db.collection('reviews').doc(orderId), {
           'orderId': orderId,
           'targetId': providerId,
           'targetType': text('orderType') == 'course' ? 'academy' : text('orderType'),
           'courseId': courseId,
           'studentId': currentStudentId,
-          'studentName': student['name'] ?? '',
+          'studentName': studentNameOf(student),
           'studentInfo': studentInfo,
           'rating': newRating,
           'criteria': Map<String, int>.from(criteria),

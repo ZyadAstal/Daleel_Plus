@@ -45,6 +45,12 @@ class CourseDetailsController extends GetxController {
 
   int get discountPercent => originalPrice == 0 ? 0 : (savedAmount / originalPrice * 100).round();
 
+  // الدورة بدأت (تاريخ البداية فات)، فما بنسمح بالحجز
+  bool get hasStarted {
+    final start = course['startDate'];
+    return start is Timestamp && start.toDate().isBefore(DateTime.now());
+  }
+
   int get seatsLeft {
     final num maxSeats = course['maxSeats'] ?? 0;
     final num booked = course['bookedSeats'] ?? 0;

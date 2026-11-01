@@ -137,6 +137,21 @@ class MyOrdersController extends GetxController {
     }
   }
 
+  // الطالب بيقدر يلغي الطلب بس وهو "جديد" (قبل ما المزود يقبله)
+  Future<void> cancelOrder(Map<String, dynamic> order) async {
+    try {
+      await _db.collection('orders').doc(order['id']).update({
+        'orderStatus': 'canceled',
+        'canceledBy': 'student',
+        'updatedAt': Timestamp.now(),
+      });
+      Get.snackbar('تم إلغاء الحجز', 'تم إبلاغ الجهة بإلغاء طلبك');
+    } catch (e) {
+      debugPrint('MyOrdersController: $e');
+      Get.snackbar('خطأ', 'لم يتم إلغاء الحجز، حاول مرة أخرى');
+    }
+  }
+
   void retry() {
     for (final subscription in _subscriptions) {
       subscription.cancel();

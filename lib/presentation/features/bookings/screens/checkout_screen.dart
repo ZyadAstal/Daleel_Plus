@@ -183,10 +183,10 @@ class CheckoutScreen extends StatelessWidget {
                     children: [
                       Icon(Icons.card_giftcard, size: 20, color: AppColors.secondary),
                       SizedBox(width: 6),
-                      Text(
+                      Flexible(child: Text(
                         'كوبون الخصم الطلابي الإضافي',
                         style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                      ),
+                      )),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -451,7 +451,7 @@ class CheckoutScreen extends StatelessWidget {
           ],
         ),
         child: Obx(() {
-          final canSend = !controller.isLoading.value && !controller.isSending.value;
+          final canSend = !controller.isLoading.value && !controller.isSending.value && controller.isAccepting;
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -476,7 +476,11 @@ class CheckoutScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          controller.paymentMethod.value == 'cash' ? 'تأكيد الحجز الآن' : 'تأكيد الحجز والدفع الآن',
+                          !controller.isAccepting
+                              ? 'لا يستقبل حجوزات حاليًا'
+                              : controller.paymentMethod.value == 'cash'
+                                  ? 'تأكيد الحجز الآن'
+                                  : 'تأكيد الحجز والدفع الآن',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
@@ -500,10 +504,10 @@ class CheckoutScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.lock_outline, size: 14, color: AppColors.success),
                   SizedBox(width: 4),
-                  Text(
+                  Flexible(child: Text(
                     'معاملات مشفرة ومحمية وفق أعلى معايير الأمان المصرفي',
                     style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                  ),
+                  )),
                 ],
               ),
             ],

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../shared/constants/app_colors.dart';
 import '../../../shared/constants/app_sizes.dart';
+import '../screens/provider_notifications_screen.dart';
+import '../screens/provider_profile_screen.dart';
+import '../state/provider_notifications_controller.dart';
 
 class ProviderTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -46,10 +49,13 @@ class ProviderTopBar extends StatelessWidget implements PreferredSizeWidget {
               Expanded(child: _titleBlock()),
               _notificationIcon(),
               const SizedBox(width: AppSizes.space16),
-              const CircleAvatar(
-                radius: 16,
-                backgroundColor: AppColors.primary,
-                child: Icon(Icons.person_outline, color: AppColors.white, size: 18),
+              GestureDetector(
+                onTap: _openProfile,
+                child: const CircleAvatar(
+                  radius: 16,
+                  backgroundColor: AppColors.primary,
+                  child: Icon(Icons.person_outline, color: AppColors.white, size: 18),
+                ),
               ),
             ],
           ),
@@ -111,28 +117,53 @@ class ProviderTopBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
               const SizedBox(width: 6),
-              Text(_statusText, style: TextStyle(fontSize: 11, color: statusColor)),
+              Flexible(child: Text(_statusText, style: TextStyle(fontSize: 11, color: statusColor))),
             ],
           ),
       ],
     );
   }
 
+  // صورة الحساب: بتفتح الملف الشخصي (إذا مش مفتوح أصلا)
+  void _openProfile() {
+    if (Get.currentRoute == '/ProviderProfileScreen') return;
+    if (showBack) {
+      Get.to(() => const ProviderProfileScreen());
+    } else {
+      Get.off(() => const ProviderProfileScreen());
+    }
+  }
+
+  void _openNotifications() {
+    if (Get.currentRoute == '/ProviderNotificationsScreen') return;
+    Get.to(() => const ProviderNotificationsScreen());
+  }
+
   Widget _notificationIcon() {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary, size: 24),
-        Positioned(
-          top: -1,
-          right: -1,
-          child: Container(
-            width: 8,
-            height: 8,
-            decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
+    final notifications = providerNotifications();
+
+    return GestureDetector(
+      onTap: _openNotifications,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary, size: 24),
+          // النقطة الحمرا بتظهر بس إذا في إشعار غير مقروء
+          Positioned(
+            top: -1,
+            right: -1,
+            child: Obx(
+              () => notifications.unreadCount > 0
+                  ? Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
+                    )
+                  : const SizedBox.shrink(),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

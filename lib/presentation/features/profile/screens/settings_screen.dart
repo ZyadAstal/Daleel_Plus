@@ -386,14 +386,14 @@ class SettingsScreen extends StatelessWidget {
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    Flexible(child: Text(
                       'تسجيل الخروج من الحساب',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
                         color: AppColors.error,
                       ),
-                    ),
+                    )),
                     SizedBox(width: 6),
                     Icon(Icons.logout, color: AppColors.error),
                   ],
@@ -477,14 +477,14 @@ class _Title extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: color),
           const SizedBox(width: 6),
-          Text(
+          Flexible(child: Text(
             title,
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
             ),
-          ),
+          )),
         ],
       ),
     );

@@ -157,14 +157,14 @@ class MyOrdersScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 6),
-                            Text(
+                            Flexible(child: Text(
                               _tabNames[value]!,
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                                 color: isSelected ? AppColors.primary : AppColors.textSecondary,
                               ),
-                            ),
+                            )),
                           ],
                         ),
                       ),
@@ -410,6 +410,28 @@ class _OrderCard extends StatelessWidget {
         onTap: order['rescheduleRequested'] == true ? null : () => controller.requestReschedule(order),
       ));
     }
+    if (status == 'pending') {
+      buttons.add(_Button(
+        text: 'إلغاء الحجز',
+        isLight: true,
+        onTap: () => Get.dialog(
+          AlertDialog(
+            title: const Text('إلغاء الحجز', style: TextStyle(fontWeight: FontWeight.w800)),
+            content: Text('هل تريد إلغاء طلب "${order['itemTitle'] ?? ''}"؟'),
+            actions: [
+              TextButton(onPressed: () => Get.back(), child: const Text('تراجع')),
+              TextButton(
+                onPressed: () {
+                  Get.back();
+                  controller.cancelOrder(order);
+                },
+                child: const Text('إلغاء الحجز', style: TextStyle(color: AppColors.error)),
+              ),
+            ],
+          ),
+        ),
+      ));
+    }
     if (status == 'completed' && order['isReviewed'] != true) {
       buttons.add(_Button(
         text: 'تقييم',
@@ -462,10 +484,10 @@ class _OrderCard extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              Text(
+                              Flexible(child: Text(
                                 '#${order['orderNumber'] ?? ''}',
                                 style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
-                              ),
+                              )),
                             ],
                           ),
                           const SizedBox(height: 6),
@@ -736,30 +758,42 @@ class _ReviewPrompt extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
+          // Wrap: النجوم بسطر والأزرار بسطر تاني إذا الشاشة ضيقة
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              ...List.generate(
-                5,
-                    (index) => GestureDetector(
-                  onTap: () => AddReviewScreen.open(order['id']),
-                  child: const Icon(Icons.star_border_rounded, size: 28, color: AppColors.secondary),
-                ),
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: onClose,
-                child: const Text('تخطي الآن', style: TextStyle(color: AppColors.textSecondary)),
-              ),
-              GestureDetector(
-                onTap: () => AddReviewScreen.open(order['id']),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                  decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)),
-                  child: const Text(
-                    'إرسال التقييم',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.white),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(
+                  5,
+                  (index) => GestureDetector(
+                    onTap: () => AddReviewScreen.open(order['id']),
+                    child: const Icon(Icons.star_border_rounded, size: 28, color: AppColors.secondary),
                   ),
                 ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                    onPressed: onClose,
+                    child: const Text('تخطي الآن', style: TextStyle(color: AppColors.textSecondary)),
+                  ),
+                  GestureDetector(
+                    onTap: () => AddReviewScreen.open(order['id']),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                      decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)),
+                      child: const Text(
+                        'إرسال التقييم',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.white),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

@@ -65,10 +65,10 @@ class DashboardStatCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text(
+              Flexible(child: Text(
                 value,
                 style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: valueColor),
-              ),
+              )),
               if (unit.isNotEmpty) ...[
                 const SizedBox(width: 2),
                 Text(

@@ -140,7 +140,7 @@ class SearchResultsScreen extends StatelessWidget {
                             children: [
                               Icon(Icons.search, size: 14, color: AppColors.primary),
                               SizedBox(width: 4),
-                              Text('نتائج البحث عن:', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                              Flexible(child: Text('نتائج البحث عن:', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
                             ],
                           ),
                           Text(
@@ -316,7 +316,7 @@ class _FilterChip extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Text(filter.text, style: const TextStyle(fontSize: 12, color: AppColors.textPrimary)),
+          Flexible(child: Text(filter.text, style: const TextStyle(fontSize: 12, color: AppColors.textPrimary))),
           const SizedBox(width: 4),
           GestureDetector(
             onTap: filter.onRemove,
@@ -471,10 +471,10 @@ class _ResultCard extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Text(
+                          Flexible(child: Text(
                             '${DiscoverySearchController.money(price)} ₪',
                             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.primary),
-                          ),
+                          )),
                           const SizedBox(width: 4),
                           if (oldPrice > 0)
                             Text(

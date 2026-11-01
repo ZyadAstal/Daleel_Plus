@@ -54,7 +54,7 @@ class TutorsController extends GetxController {
 
     _subscriptions.add(_db
         .collection('serviceProviders')
-        .where('providerType', isEqualTo: 'tutor')
+        .where('providerType', isEqualTo: 'privateTutor')
         .snapshots()
         .listen((result) {
       _tutors.value = result.docs.map((doc) => {...doc.data(), 'id': doc.id}).toList();
