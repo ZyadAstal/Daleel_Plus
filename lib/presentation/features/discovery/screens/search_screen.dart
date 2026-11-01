@@ -171,13 +171,12 @@ class SearchScreen extends StatelessWidget {
                       decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
                     ),
                     const SizedBox(width: AppSizes.space8),
-                    const Text(
+                    Expanded(child: const Text(
                       'نتائج مقترحة فورية',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                    ),
+                    )),
                     const SizedBox(width: AppSizes.space8),
                     _Badge(text: '${suggestions.length} عروض', color: AppColors.primary),
-                    const Spacer(),
                     GestureDetector(
                       onTap: () => _openResults(controller),
                       child: const Text(
@@ -260,10 +259,10 @@ class SearchScreen extends StatelessWidget {
                                     children: [
                                       const Icon(Icons.trending_up, size: 12, color: AppColors.success),
                                       const SizedBox(width: 2),
-                                      Text(
+                                      Flexible(child: Text(
                                         '+${item['count'] ?? 0} بحث',
                                         style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
-                                      ),
+                                      )),
                                     ],
                                   ),
                                 ],

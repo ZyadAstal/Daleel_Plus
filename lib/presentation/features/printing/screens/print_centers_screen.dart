@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../shared/constants/app_colors.dart';
 import '../../../shared/constants/app_sizes.dart';
-import '../../providers/widgets/provider_top_bar.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../shared/widgets/student_top_bar.dart';
+import '../../providers/state/provider_helpers.dart';
 import '../../../shared/widgets/student_bottom_nav.dart';
 import '../state/print_centers_controller.dart';
 import '../state/print_order_controller.dart';
@@ -66,7 +68,7 @@ class PrintCentersScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
-      appBar: const ProviderTopBar(title: 'المكتبات ومراكز الطباعة'),
+      appBar: const StudentTopBar(title: 'المكتبات ومراكز الطباعة'),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -419,10 +421,10 @@ class _StatsRow extends StatelessWidget {
                   Icon(icon, size: 18, color: color),
                   const SizedBox(width: AppSizes.space4),
                 ],
-                Text(
+                Flexible(child: Text(
                   value,
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: color),
-                ),
+                )),
               ],
             ),
             const SizedBox(height: AppSizes.space4),
@@ -477,6 +479,129 @@ class _CenterCard extends StatelessWidget {
 
   Map<String, dynamic> get _service => Map<String, dynamic>.from(center['service'] ?? {});
 
+  String _text(String key) => (center[key] ?? '').toString();
+
+  // نافذة تفاصيل المركز: العنوان، الدوام، الأسعار، والتواصل
+  void _showDetails(bool isAvailable) {
+    final List days = center['workingDays'] ?? [];
+    final hours = days.isEmpty
+        ? 'لم تُحدد بعد'
+        : '${ProviderFormat.dayName(days.first)} - ${ProviderFormat.dayName(days.last)} '
+            '(${ProviderFormat.time12h(_text('openingTime'))} - ${ProviderFormat.time12h(_text('closingTime'))})';
+    final address = [_text('city'), _text('addressDetails')].where((t) => t.isNotEmpty).join(' - ');
+    const prices = {
+      'bwPagePrice': 'صفحة أبيض وأسود',
+      'colorPagePrice': 'صفحة ملونة',
+      'spiralBindingPrice': 'تجليد سلك',
+      'thermalBindingPrice': 'تجليد حراري',
+      'hardCoverBindingPrice': 'تجليد كرتون مقوى',
+      'largePosterPrice': 'بوستر كبير',
+    };
+    final whatsapp = _text('whatsappNumber').replaceAll(RegExp(r'[^0-9]'), '');
+
+    Widget line(IconData icon, String text) => Padding(
+          padding: const EdgeInsets.only(bottom: AppSizes.space8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, size: 18, color: AppColors.primary),
+              const SizedBox(width: AppSizes.space8),
+              Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
+            ],
+          ),
+        );
+
+    Get.bottomSheet(
+      Container(
+        constraints: BoxConstraints(maxHeight: Get.height * 0.8),
+        padding: const EdgeInsets.all(AppSizes.space24),
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_text('businessName'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              if (_text('headline').isNotEmpty)
+                Text(_text('headline'), style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              const SizedBox(height: AppSizes.space16),
+              if (address.isNotEmpty) line(Icons.location_on_outlined, address),
+              line(Icons.schedule, hours),
+              line(isAvailable ? Icons.check_circle_outline : Icons.pause_circle_outline,
+                  isAvailable ? 'يستقبل طلبات الآن' : 'لا يستقبل طلبات حاليًا'),
+              if (_text('bioDescription').isNotEmpty) ...[
+                const SizedBox(height: AppSizes.space8),
+                Text(_text('bioDescription'),
+                    style: const TextStyle(fontSize: 12, height: 1.7, color: AppColors.textSecondary)),
+              ],
+              const SizedBox(height: AppSizes.space16),
+              const Text('الأسعار', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+              const SizedBox(height: AppSizes.space8),
+              for (final price in prices.entries)
+                if ((_service[price.key] ?? 0) > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        Expanded(child: Text(price.value, style: const TextStyle(fontSize: 13))),
+                        Text('${_service[price.key]} ₪',
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                      ],
+                    ),
+                  ),
+              const SizedBox(height: AppSizes.space16),
+              Row(
+                children: [
+                  if (whatsapp.isNotEmpty) ...[
+                    Expanded(
+                      child: _button(
+                        text: 'واتساب',
+                        icon: Icons.chat_outlined,
+                        onTap: () => launchUrl(Uri.parse('https://wa.me/$whatsapp'),
+                            mode: LaunchMode.externalApplication),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+                  if (address.isNotEmpty)
+                    Expanded(
+                      child: _button(
+                        text: 'الخريطة',
+                        icon: Icons.map_outlined,
+                        onTap: () => launchUrl(
+                          Uri.https('www.google.com', '/maps/search/', {'api': '1', 'query': address}),
+                          mode: LaunchMode.externalApplication,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: _button(
+                text: 'طلب طباعة فوري',
+                icon: Icons.send_outlined,
+                isMain: true,
+                onTap: isAvailable
+                    ? () {
+                        Get.back();
+                        onOrder();
+                      }
+                    : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isAvailable = center['isAcceptingOrders'] ?? true;
@@ -522,8 +647,7 @@ class _CenterCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 flex: 2,
-                // TODO: الانتقال لشاشة تفاصيل المركز عند تجهيزها (غير موجودة بالتصميم حاليًا)
-                child: _button(text: 'تفاصيل المركز', onTap: () {}),
+                child: _button(text: 'تفاصيل المركز', onTap: () => _showDetails(isAvailable)),
               ),
             ],
           ),
@@ -584,7 +708,7 @@ class _CenterCard extends StatelessWidget {
 
   Widget _info() {
     final rating = (center['averageRating'] ?? 0).toDouble();
-    final int reviews = center['reviewsCount'] ?? 0;
+    final int reviews = ((center['ratingsCount'] ?? center['reviewsCount'] ?? 0) as num).toInt();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

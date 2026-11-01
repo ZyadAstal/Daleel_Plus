@@ -8,6 +8,7 @@ import 'package:daleel_plus/data/repositories/auth_repository.dart';
 import 'package:daleel_plus/presentation/features/auth/screens/auth_gate.dart';
 
 import '../../printing/state/print_centers_controller.dart';
+import 'notifications_badge_controller.dart';
 
 class StudentAccountController extends GetxController {
   static StudentAccountController get instance =>
@@ -280,6 +281,8 @@ class StudentAccountController extends GetxController {
 
   Future<void> logout() async {
     try {
+      // نوقف عداد الإشعارات قبل الخروج
+      Get.delete<NotificationsBadgeController>(force: true);
       await Get.find<AuthRepository>().signOut();
       Get.offAll<void>(() => const AuthGate());
     } catch (e) {

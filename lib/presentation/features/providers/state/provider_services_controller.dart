@@ -179,4 +179,15 @@ class ProviderServicesController extends GetxController {
       Get.snackbar('خطأ', 'لم يتم حذف الخدمة، حاول مرة أخرى');
     }
   }
+
+  // زر "إعادة المحاولة" بشاشة الخطأ
+  void retry() {
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
+    errorMessage.value = '';
+    isLoading.value = true;
+    onInit();
+  }
 }

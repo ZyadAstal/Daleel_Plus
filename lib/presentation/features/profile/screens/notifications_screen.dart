@@ -121,15 +121,14 @@ class NotificationsScreen extends StatelessWidget {
                 const SizedBox(height: AppSizes.space24),
                 Row(
                   children: [
-                    Text(
+                    Expanded(child: Text(
                       '● ${group.key}',
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary,
                       ),
-                    ),
-                    const Spacer(),
+                    )),
                     Text(
                       group.key == 'اليوم'
                           ? '${group.value.where((item) => item['isRead'] != true).length} تنبيهات جديدة'
@@ -221,14 +220,14 @@ class NotificationsScreen extends StatelessWidget {
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
+                          Flexible(child: Text(
                             'تخصيص نغمات وأولويات الإشعارات',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: AppColors.primary,
                             ),
-                          ),
+                          )),
                           SizedBox(width: 6),
                           Icon(
                             Icons.arrow_forward,
@@ -307,6 +306,7 @@ class _NotificationCard extends StatelessWidget {
     'sessions': Icons.school_outlined,
     'offers': Icons.local_offer_outlined,
     'events': Icons.campaign_outlined,
+    'courses': Icons.menu_book_outlined,
   };
 
   static const Map<String, String> _categories = {
@@ -315,6 +315,7 @@ class _NotificationCard extends StatelessWidget {
     'sessions': 'جلسات التدريس الخاص',
     'offers': 'عروض وخصومات خاصة',
     'events': 'فعاليات جامعية',
+    'courses': 'الدورات والحجوزات',
   };
 
   @override
@@ -377,6 +378,16 @@ class _NotificationCard extends StatelessWidget {
           ),
         );
       }
+    } else if (type == 'courses' || (type == 'sessions' && item['eventAt'] == null)) {
+      // إشعارات تحديث الحجز (قبول، رفض، اكتمال) بتفتح صفحة طلباتي
+      actions.add(
+        _ActionButton(
+          text: 'عرض طلباتي',
+          icon: Icons.arrow_forward,
+          isPrimary: true,
+          onTap: () => Get.to(() => const MyOrdersScreen()),
+        ),
+      );
     } else if (type == 'sessions' && item['eventAt'] != null) {
       actions.add(
         _ActionButton(
@@ -437,14 +448,12 @@ class _NotificationCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const Spacer(),
-                          Text(
+                          Expanded(child: Text(
                             NotificationsController.timeAgo(item),
                             style: const TextStyle(
                               fontSize: 10,
                               color: AppColors.textSecondary,
-                            ),
-                          ),
+                            ), textAlign: TextAlign.end)),
                           if (isUnread) ...[
                             const SizedBox(width: 4),
                             const CircleAvatar(

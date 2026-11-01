@@ -146,10 +146,10 @@ class BookingSuccessScreen extends StatelessWidget {
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
+                        Flexible(child: Text(
                           'الانتقال إلى حجوزاتي وطلباتي',
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.white),
-                        ),
+                        )),
                         SizedBox(width: 8),
                         Icon(Icons.arrow_forward, color: AppColors.white),
                       ],
@@ -170,10 +170,10 @@ class BookingSuccessScreen extends StatelessWidget {
                       children: [
                         Icon(Icons.home_outlined, size: 18, color: AppColors.textPrimary),
                         SizedBox(width: 6),
-                        Text(
+                        Flexible(child: Text(
                           'العودة إلى الشاشة الرئيسية',
                           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                        ),
+                        )),
                       ],
                     ),
                   ),

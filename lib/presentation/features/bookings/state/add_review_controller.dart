@@ -191,7 +191,7 @@ class AddReviewController extends GetxController {
           'targetType': text('orderType') == 'course' ? 'academy' : text('orderType'),
           'courseId': courseId,
           'studentId': currentStudentId,
-          'studentName': student['name'] ?? '',
+          'studentName': studentNameOf(student),
           'studentInfo': studentInfo,
           'rating': newRating,
           'criteria': Map<String, int>.from(criteria),

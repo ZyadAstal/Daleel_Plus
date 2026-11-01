@@ -8,6 +8,15 @@ import 'provider_helpers.dart';
 enum RequestFilter { pending, active, completed, canceled }
 
 class ProviderRequestsController extends GetxController {
+  // initialFilter و initialSearch: لما نفتح الطلبات من زر معين (مثلا "التفاصيل" بالرئيسية)
+  ProviderRequestsController({
+    RequestFilter initialFilter = RequestFilter.pending,
+    String initialSearch = '',
+  }) {
+    selectedFilter.value = initialFilter;
+    searchText.value = initialSearch;
+  }
+
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final List<StreamSubscription> _subscriptions = [];
 
@@ -60,9 +69,12 @@ class ProviderRequestsController extends GetxController {
       final number = (order['orderNumber'] ?? '').toString();
       final name = (order['studentName'] ?? '').toString();
       final university = (order['studentUniversity'] ?? '').toString();
+      final title = (order['itemTitle'] ?? '').toString();
 
-      final matchesSearch =
-          query.isEmpty || number.contains(query.replaceAll('#', '')) || name.contains(query);
+      final matchesSearch = query.isEmpty ||
+          number.contains(query.replaceAll('#', '')) ||
+          name.contains(query) ||
+          title.contains(query);
       final matchesUniversity =
           selectedUniversity.value == allUniversities || university == selectedUniversity.value;
 
@@ -141,11 +153,15 @@ class ProviderRequestsController extends GetxController {
 
   void changeSearch(String value) => searchText.value = value;
 
+  // notifyTitle و notifyBody: نص الإشعار اللي بيوصل للطالب بعد التغيير
   Future<bool> _updateOrder(
       Map<String, dynamic> order,
       Map<String, dynamic> data,
-      String successMessage,
-      ) async {
+      String successMessage, {
+      String? notifyTitle,
+      String? notifyBody,
+      Map<String, dynamic> notifyExtra = const {},
+      }) async {
     if (busyOrderId.value.isNotEmpty) return false;
     busyOrderId.value = order['id'];
 
@@ -155,6 +171,9 @@ class ProviderRequestsController extends GetxController {
         'updatedAt': Timestamp.now(),
       });
       Get.snackbar('تم', successMessage);
+      if (notifyTitle != null) {
+        await notifyStudent(order, notifyTitle, notifyBody ?? '', extra: notifyExtra);
+      }
       return true;
     } catch (e) {
       debugPrint('ProviderRequestsController: $e');
@@ -170,6 +189,8 @@ class ProviderRequestsController extends GetxController {
       order,
       {'orderStatus': 'confirmed'},
       'تم قبول طلب ${order['studentName'] ?? ''}',
+      notifyTitle: 'تم قبول طلبك ✅',
+      notifyBody: 'تم تأكيد طلبك: ${order['itemTitle'] ?? ''}',
     );
 
     final courseId = (order['courseId'] ?? '').toString();
@@ -186,7 +207,13 @@ class ProviderRequestsController extends GetxController {
   }
 
   Future<bool> rejectOrder(Map<String, dynamic> order) {
-    return _updateOrder(order, {'orderStatus': 'canceled'}, 'تم رفض الطلب');
+    return _updateOrder(
+      order,
+      {'orderStatus': 'canceled'},
+      'تم رفض الطلب',
+      notifyTitle: 'تعذر قبول طلبك',
+      notifyBody: 'نعتذر، لم يتم قبول طلبك: ${order['itemTitle'] ?? ''}',
+    );
   }
 
   Future<bool> confirmDelivery(Map<String, dynamic> order) {
@@ -194,6 +221,8 @@ class ProviderRequestsController extends GetxController {
       order,
       {'orderStatus': 'completed', 'paymentStatus': 'paid'},
       'تم تأكيد التسليم',
+      notifyTitle: 'اكتمل طلبك 🎉',
+      notifyBody: 'تم إكمال طلبك: ${order['itemTitle'] ?? ''}. شاركنا تقييمك من صفحة طلباتي',
     );
   }
 
@@ -202,6 +231,9 @@ class ProviderRequestsController extends GetxController {
       order,
       {'appointmentAt': Timestamp.fromDate(date)},
       'تم تعديل الموعد',
+      notifyTitle: 'تم تعديل موعدك',
+      notifyBody: '${order['itemTitle'] ?? ''}: الموعد الجديد ${ProviderFormat.appointment(date)}',
+      notifyExtra: {'eventAt': Timestamp.fromDate(date)},
     );
   }
 
@@ -217,5 +249,16 @@ class ProviderRequestsController extends GetxController {
       mode: LaunchMode.externalApplication,
     );
     if (!opened) Get.snackbar('خطأ', 'تعذر فتح واتساب');
+  }
+
+  // زر "إعادة المحاولة" بشاشة الخطأ
+  void retry() {
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
+    errorMessage.value = '';
+    isLoading.value = true;
+    onInit();
   }
 }

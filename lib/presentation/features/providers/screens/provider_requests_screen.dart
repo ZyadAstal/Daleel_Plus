@@ -9,13 +9,28 @@ import '../widgets/confirm_dialog.dart';
 import '../widgets/provider_bottom_nav.dart';
 import '../widgets/provider_top_bar.dart';
 import 'provider_profile_screen.dart';
+import '../../app_status/screens/system_error_screen.dart';
 
 class ProviderRequestsScreen extends StatelessWidget {
-  const ProviderRequestsScreen({super.key});
+  final RequestFilter initialFilter;
+  final String initialSearch;
+
+  const ProviderRequestsScreen({
+    super.key,
+    this.initialFilter = RequestFilter.pending,
+    this.initialSearch = '',
+  });
+
+  // فتح الطلبات على تبويب معين، أو على طلب معين برقمه
+  static void open({RequestFilter filter = RequestFilter.pending, String search = ''}) {
+    Get.off(() => ProviderRequestsScreen(initialFilter: filter, initialSearch: search));
+  }
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(ProviderRequestsController());
+    final controller = Get.put(
+      ProviderRequestsController(initialFilter: initialFilter, initialSearch: initialSearch),
+    );
 
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
@@ -35,12 +50,15 @@ class ProviderRequestsScreen extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // إذا صار خطأ: بعد تجهيز شاشة 42 من app_status استبدلي السطر الحالي بـ:
-        // if (controller.errorMessage.value.isNotEmpty) {
-        //   return const UnexpectedErrorScreen(); // شاشة 42 من app_status
-        // }
         if (controller.errorMessage.value.isNotEmpty) {
-          return Center(child: Text(controller.errorMessage.value));
+          return SystemErrorScreen(
+            description: controller.errorMessage.value,
+            showSafetyCard: false,
+            errorDetails: null,
+            apiPath: null,
+            timeoutText: null,
+            onRetry: controller.retry,
+          );
         }
 
         final orders = controller.visibleOrders;
@@ -59,7 +77,7 @@ class ProviderRequestsScreen extends StatelessWidget {
               const SizedBox(height: AppSizes.space16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSizes.space24),
-                child: _SearchField(onChanged: controller.changeSearch),
+                child: _SearchField(initialText: initialSearch, onChanged: controller.changeSearch),
               ),
               const SizedBox(height: AppSizes.space16),
               _UniversityChips(controller: controller),
@@ -68,8 +86,6 @@ class ProviderRequestsScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: AppSizes.space24),
                 child: Column(
                   children: [
-                    // لا توجد نتائج للبحث: بعد تجهيز شاشة 41 من app_status استبدلي _EmptyState بـ:
-                    // const NoSearchResultsScreen() // شاشة 41 من app_status
                     if (orders.isEmpty)
                       _EmptyState(
                         message: controller.searchText.value.trim().isEmpty
@@ -251,9 +267,10 @@ class _StatusTabs extends StatelessWidget {
 }
 
 class _SearchField extends StatelessWidget {
+  final String initialText;
   final ValueChanged<String> onChanged;
 
-  const _SearchField({required this.onChanged});
+  const _SearchField({required this.initialText, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -263,12 +280,13 @@ class _SearchField extends StatelessWidget {
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppSizes.fieldRadius),
       ),
-      child: TextField(
+      child: TextFormField(
+        initialValue: initialText,
         onChanged: onChanged,
         textAlignVertical: TextAlignVertical.center,
         style: const TextStyle(fontSize: 14),
         decoration: const InputDecoration(
-          hintText: 'ابحث برقم الطلب #KHT أو اسم الطالب...',
+          hintText: 'ابحث برقم الطلب أو اسم الطالب أو الخدمة...',
           hintStyle: TextStyle(fontSize: 13, color: AppColors.textSecondary),
           prefixIcon: Icon(Icons.search, color: AppColors.textPrimary),
           border: InputBorder.none,
@@ -443,7 +461,9 @@ class _RequestCard extends StatelessWidget {
 
   Widget _studentBox() {
     final String avatar = order['studentAvatar'] ?? '';
-    final String name = order['studentName'] ?? '';
+    final String savedName = order['studentName'] ?? '';
+    // طلبات قديمة انحفظت بدون اسم، فبنعرض "طالب" بدل سطر فاضي
+    final String name = savedName.isNotEmpty ? savedName : 'طالب';
     final details = [
       order['studentMajor'],
       order['studentUniversity'],
@@ -557,7 +577,7 @@ class _RequestCard extends StatelessWidget {
           _chip('الدفع عند الاستلام', AppColors.textSecondary, AppColors.border)
         else if (discount > 0)
           _chip(
-            'خصم خطوتي الطلابي ${discount.round()}%',
+            'خصم دليل+ الطلابي ${discount.round()}%',
             AppColors.success,
             AppColors.success.withValues(alpha: 0.15),
             icon: Icons.sell_outlined,
@@ -824,6 +844,8 @@ class _RequestCard extends StatelessWidget {
           elevation: isMain ? 4 : 0,
           shadowColor: AppColors.primary.withValues(alpha: 0.3),
           shape: const StadiumBorder(),
+          // padding أصغر من الافتراضي عشان النص ياخد مساحة أكبر
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           textStyle: const TextStyle(
             fontFamily: 'Cairo',
             fontSize: 13,
@@ -833,7 +855,8 @@ class _RequestCard extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Flexible(child: Text(text, overflow: TextOverflow.ellipsis)),
+            // FittedBox: إذا النص أطول من الزر بيصغر شوي بدل ما ينقص بـ "..."
+            Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: Text(text))),
             if (icon != null) ...[
               const SizedBox(width: 6),
               Icon(icon, size: 18, color: iconColor ?? fg),
@@ -965,11 +988,9 @@ class _CollectionCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Spacer(),
-              const Text(
+              Expanded(child: const Text(
                 'محدّث لحظيًا',
-                style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
-              ),
+                style: TextStyle(fontSize: 10, color: AppColors.textSecondary), textAlign: TextAlign.end)),
             ],
           ),
         ],

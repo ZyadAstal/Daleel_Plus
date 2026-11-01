@@ -7,8 +7,39 @@ import 'package:daleel_plus/presentation/shared/constants/app_colors.dart';
 import 'package:daleel_plus/presentation/features/auth/widgets/auth_widgets.dart';
 import 'package:daleel_plus/presentation/features/onboarding/state/onboarding_controller.dart';
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProviderStateMixin {
+  static const _purple = LinearGradient(
+    colors: [Color(0xFF9B87F5), AppColors.primary],
+    begin: Alignment.centerRight,
+    end: Alignment.centerLeft,
+  );
+
+  late final AnimationController _progress = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 4),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _progress.forward().then((_) {
+      if (mounted) Get.off<void>(() => OnboardingScreen());
+    });
+  }
+
+  @override
+  void dispose() {
+    _progress.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) => MobilePage(
     color: AppColors.scaffoldBg,
@@ -43,8 +74,15 @@ class WelcomeScreen extends StatelessWidget {
                         ],
                       ),
                       padding: EdgeInsets.all(AppSizes.space8),
-                      child: BrandLogo(size: AppSizes.space4 * 27),
-                    ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(AppSizes.space4 * 4),
+                        child: Image.asset(
+                          'assets/icon/app_icon.png',
+                          width: AppSizes.space4 * 27,
+                          height: AppSizes.space4 * 27,
+                          filterQuality: FilterQuality.high,
+                        ),
+                      ),                    ),
                     SizedBox(height: AppSizes.space4 * 5),
                     Text(
                       'دليل +',
@@ -53,7 +91,7 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'D A L E E L +',
+                      '+ D A L E E L ',
                       style: AppTextStyles.caption.copyWith(
                         letterSpacing: AppSizes.space4,
                       ),
@@ -76,51 +114,62 @@ class WelcomeScreen extends StatelessWidget {
                 ),
                 Padding(
                   padding: EdgeInsets.only(top: AppSizes.space4 * 18),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'جاهز للبدء؟',
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.success,
+                  child: AnimatedBuilder(
+                    animation: _progress,
+                    builder: (context, _) => Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _progress.value >= 1 ? 'جاهز للبدء!' : 'جاري التحميل...',
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            ShaderMask(
+                              shaderCallback: (bounds) => _purple.createShader(bounds),
+                              child: Text(
+                                '${(_progress.value * 100).round()}%',
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: AppSizes.space4 * 3),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
+                          child: Container(
+                            height: 4,
+                            color: AppColors.surfaceSubdued,
+                            alignment: AlignmentDirectional.centerStart,
+                            child: FractionallySizedBox(
+                              widthFactor: _progress.value,
+                              child: Container(
+                                decoration: const BoxDecoration(gradient: _purple),
+                              ),
                             ),
                           ),
-                          Text(
-                            '100%',
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.primary,
-                            ),
+                        ),
+                        SizedBox(height: AppSizes.space4 * 3),
+                        Text(
+                          'منصتك لجميع الخدمات الطلابية',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.textSecondary,
                           ),
-                        ],
-                      ),
-                      SizedBox(height: AppSizes.space4 * 3),
-                      LinearProgressIndicator(
-                        value: 1,
-                        color: AppColors.success,
-                        minHeight: 3,
-                      ),
-                      SizedBox(height: AppSizes.space4 * 3),
-                      Text(
-                        'منصتك لجميع الخدمات الطلابية',
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.textSecondary,
                         ),
-                      ),
-                      SizedBox(height: AppSizes.space4 * 5),
-                      AppPrimaryButton(
-                        text: 'ابدأ رحلتك الآن',
-                        onPressed: () => Get.to<void>(() => OnboardingScreen()),
-                      ),
-                      SizedBox(height: AppSizes.space16),
-                      Text(
-                        'تعلّم، اكتشف، وتواصل... مستقبلك يبدأ هنا',
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.textSecondary,
+                        SizedBox(height: AppSizes.space4 * 5),
+                        Text(
+                          'تعلّم، اكتشف، وتواصل... مستقبلك يبدأ هنا',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -170,14 +219,28 @@ class OnboardingScreen extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: AppSizes.space24),
                   child: Column(
                     children: [
-                      Image.asset(
-                        'assets/images/${page.image}.png',
-                        width: double.infinity,
-                        height: (constraints.maxHeight * 0.43).clamp(
-                          100.0,
-                          300.0,
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(AppSizes.space24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.09),
+                              blurRadius: 18,
+                              offset: const Offset(0, 12),
+                            ),
+                          ],
                         ),
-                        fit: BoxFit.contain,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(AppSizes.space24),
+                          child: Image.asset(
+                            'assets/images/${page.image}.png',
+                            height: (constraints.maxHeight * 0.43).clamp(
+                              100.0,
+                              300.0,
+                            ),
+                            fit: BoxFit.contain,
+                          ),
+                        ),
                       ),
                       SizedBox(height: AppSizes.space16),
                       Container(
@@ -213,7 +276,7 @@ class OnboardingScreen extends StatelessWidget {
                         page.description,
                         textAlign: TextAlign.center,
                         style: AppTextStyles.label.copyWith(
-                          color: AppColors.primary,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       SizedBox(height: AppSizes.space24),
@@ -224,24 +287,24 @@ class OnboardingScreen extends StatelessWidget {
                         children: page.tags
                             .map(
                               (tag) => Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: AppSizes.space4 * 3,
-                                  vertical: AppSizes.space8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.surfaceSubdued,
-                                  borderRadius: BorderRadius.circular(
-                                    AppSizes.space8,
-                                  ),
-                                ),
-                                child: Text(
-                                  tag,
-                                  style: AppTextStyles.caption.copyWith(
-                                    color: AppColors.primary,
-                                  ),
-                                ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppSizes.space4 * 3,
+                              vertical: AppSizes.space8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceSubdued,
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.space8,
                               ),
-                            )
+                            ),
+                            child: Text(
+                              tag,
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        )
                             .toList(),
                       ),
                     ],
@@ -264,7 +327,7 @@ class OnboardingScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
                   3,
-                  (index) => AnimatedContainer(
+                      (index) => AnimatedContainer(
                     duration: Duration(milliseconds: 200),
                     width: index == c.index
                         ? AppSizes.space24
@@ -286,20 +349,20 @@ class OnboardingScreen extends StatelessWidget {
                 onPressed: c.finishing
                     ? null
                     : () {
-                        if (c.index == 2) {
-                          c.finish();
-                        } else {
-                          c.controller.nextPage(
-                            duration: Duration(
-                              milliseconds:
-                                  MediaQuery.disableAnimationsOf(context)
-                                  ? 0
-                                  : 420,
-                            ),
-                            curve: Curves.easeInOutCubic,
-                          );
-                        }
-                      },
+                  if (c.index == 2) {
+                    c.finish();
+                  } else {
+                    c.controller.nextPage(
+                      duration: Duration(
+                        milliseconds:
+                        MediaQuery.disableAnimationsOf(context)
+                            ? 0
+                            : 420,
+                      ),
+                      curve: Curves.easeInOutCubic,
+                    );
+                  }
+                },
               ),
             ],
           ),

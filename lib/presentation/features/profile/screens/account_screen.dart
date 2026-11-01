@@ -227,13 +227,13 @@ class AccountScreen extends StatelessWidget {
                                     color: AppColors.textSecondary,
                                   ),
                                   const SizedBox(width: 2),
-                                  Text(
+                                  Flexible(child: Text(
                                     controller.text('city'),
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: AppColors.textSecondary,
                                     ),
-                                  ),
+                                  )),
                                 ],
                               ),
                           ],
@@ -268,14 +268,14 @@ class AccountScreen extends StatelessWidget {
                                 color: AppColors.primary,
                               ),
                               const SizedBox(width: 6),
-                              Text(
+                              Flexible(child: Text(
                                 controller.text('university'),
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w800,
                                   color: AppColors.textPrimary,
                                 ),
-                              ),
+                              )),
                             ],
                           ),
                           const SizedBox(height: 4),

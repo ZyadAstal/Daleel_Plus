@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../printing/state/print_centers_controller.dart';
@@ -23,6 +24,9 @@ class TutorProfileController extends GetxController {
   String text(String key) => (tutor[key] ?? '').toString();
 
   num number(String key) => (tutor[key] ?? 0) as num;
+
+  // التقييم الجديد بينحفظ بـ ratingsCount، والقديم ممكن يكون reviewsCount
+  num get ratingsCount => (tutor['ratingsCount'] ?? tutor['reviewsCount'] ?? 0) as num;
 
   List<String> textList(String key) =>
       ((tutor[key] ?? []) as List).map((item) => item.toString()).toList();
@@ -135,6 +139,18 @@ class TutorProfileController extends GetxController {
 
     final opened = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     if (!opened) Get.snackbar('خطأ', errorText);
+  }
+
+  // ما في رابط ويب للمدرس، فبننسخ بياناته جاهزة للمشاركة
+  Future<void> shareTutor() async {
+    final lines = [
+      'المدرس: ${text('businessName')}',
+      if (text('headline').isNotEmpty) text('headline'),
+      if (number('hourlyRate') > 0) 'سعر الساعة: ${number('hourlyRate')} ₪',
+      'احجز جلستك عبر تطبيق دليل+',
+    ];
+    await Clipboard.setData(ClipboardData(text: lines.join('\n')));
+    Get.snackbar('تم النسخ', 'تم نسخ بيانات المدرس، الصقها وين ما بدك تشاركها');
   }
 
   void callTutor() {

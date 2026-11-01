@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../academic/screens/course_details_screen.dart';
 import '../../../shared/constants/app_colors.dart';
 import '../../../shared/constants/app_sizes.dart';
 import '../state/provider_helpers.dart';
@@ -7,13 +9,30 @@ import '../state/provider_profile_controller.dart';
 import '../widgets/provider_bottom_nav.dart';
 import '../widgets/profile_settings_sheets.dart';
 import '../widgets/provider_top_bar.dart';
+import 'add_service_basic_screen.dart';
+import 'provider_services_screen.dart';
+import '../../app_status/screens/system_error_screen.dart';
 
 class ProviderProfileScreen extends StatelessWidget {
-  const ProviderProfileScreen({super.key});
+  // openWorkingHours: بنفتح الملف ومعه نافذة ساعات العمل (من زر "المواعيد" بالرئيسية)
+  final bool openWorkingHours;
+
+  const ProviderProfileScreen({super.key, this.openWorkingHours = false});
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(ProviderProfileController());
+
+    if (openWorkingHours) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // بنستنى البيانات تحمل عشان النافذة تعرض الساعات المحفوظة
+        if (!controller.isLoading.value) {
+          showWorkingHoursSheet(controller);
+        } else {
+          once(controller.isLoading, (_) => showWorkingHoursSheet(controller));
+        }
+      });
+    }
 
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
@@ -33,12 +52,15 @@ class ProviderProfileScreen extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // إذا صار خطأ: بعد تجهيز شاشة 42 من app_status استبدلي السطر الحالي بـ:
-        // if (controller.errorMessage.value.isNotEmpty) {
-        //   return const UnexpectedErrorScreen(); // شاشة 42 من app_status
-        // }
         if (controller.errorMessage.value.isNotEmpty) {
-          return Center(child: Text(controller.errorMessage.value));
+          return SystemErrorScreen(
+            description: controller.errorMessage.value,
+            showSafetyCard: false,
+            errorDetails: null,
+            apiPath: null,
+            timeoutText: null,
+            onRetry: controller.retry,
+          );
         }
 
         return SingleChildScrollView(
@@ -51,7 +73,7 @@ class ProviderProfileScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: AppSizes.space24),
-                    const _ActionButtons(),
+                    _ActionButtons(controller: controller),
                     const SizedBox(height: AppSizes.space24),
                     _StatsRow(controller: controller),
                     const SizedBox(height: AppSizes.space24),
@@ -149,10 +171,10 @@ class _ProfileHeader extends StatelessWidget {
             children: [
               const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
               const SizedBox(width: AppSizes.space4),
-              Text(
+              Flexible(child: Text(
                 controller.location,
                 style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
+              )),
             ],
           ),
           const SizedBox(height: AppSizes.space16),
@@ -267,7 +289,15 @@ class _ProfileHeader extends StatelessWidget {
 }
 
 class _ActionButtons extends StatelessWidget {
-  const _ActionButtons();
+  final ProviderProfileController controller;
+
+  const _ActionButtons({required this.controller});
+
+  // ما في رابط ويب للمركز، فبننسخ بياناته جاهزة للمشاركة (واتساب، فيسبوك...)
+  Future<void> _share() async {
+    await Clipboard.setData(ClipboardData(text: controller.shareText));
+    Get.snackbar('تم النسخ', 'تم نسخ بيانات المركز، الصقها وين ما بدك تشاركها');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -280,7 +310,7 @@ class _ActionButtons extends StatelessWidget {
             background: AppColors.primary,
             foreground: AppColors.white,
             shadowColor: AppColors.primary.withValues(alpha: 0.3),
-            onPressed: () {},
+            onPressed: () => showEditProfileSheet(controller),
           ),
         ),
         const SizedBox(width: AppSizes.space16),
@@ -292,7 +322,7 @@ class _ActionButtons extends StatelessWidget {
             foreground: AppColors.textPrimary,
             iconColor: AppColors.primary,
             shadowColor: AppColors.primary.withValues(alpha: 0.08),
-            onPressed: () {},
+            onPressed: _share,
           ),
         ),
       ],
@@ -550,7 +580,7 @@ class _PublishedServices extends StatelessWidget {
                 ),
               ),
               GestureDetector(
-                onTap: () {},
+                onTap: () => Get.off(() => const ProviderServicesScreen()),
                 child: Row(
                   children: [
                     Text(
@@ -614,17 +644,15 @@ class _PublishedServices extends StatelessWidget {
                           color: AppColors.primary,
                           background: AppColors.surfaceSubdued,
                         ),
-                      const Spacer(),
                       const Icon(Icons.circle, size: 7, color: AppColors.success),
                       const SizedBox(width: AppSizes.space4),
-                      const Text(
+                      Expanded(child: const Text(
                         'متاح للتسجيل',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: AppColors.success,
-                        ),
-                      ),
+                        ), textAlign: TextAlign.end)),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -647,11 +675,10 @@ class _PublishedServices extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        const Text(
+                        Expanded(child: const Text(
                           'رسوم التسجيل:',
                           style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                        ),
-                        const Spacer(),
+                        )),
                         Text(
                           ProviderFormat.price(
                             course['discountedPrice'] ?? course['originalPrice'],
@@ -679,6 +706,7 @@ class _PublishedServices extends StatelessWidget {
                 icon: Icons.visibility_outlined,
                 background: AppColors.surfaceSubdued,
                 foreground: AppColors.textPrimary,
+                onPressed: () => CourseDetailsScreen.open(course['id']),
               ),
             ),
             const SizedBox(width: 12),
@@ -688,6 +716,7 @@ class _PublishedServices extends StatelessWidget {
                 icon: Icons.tune,
                 background: AppColors.surfaceSubdued,
                 foreground: AppColors.primary,
+                onPressed: () => AddServiceBasicScreen.open(course: course),
               ),
             ),
           ],
@@ -701,11 +730,12 @@ class _PublishedServices extends StatelessWidget {
     required IconData icon,
     required Color background,
     required Color foreground,
+    required VoidCallback onPressed,
   }) {
     return SizedBox(
       height: 36,
       child: ElevatedButton.icon(
-        onPressed: () {},
+        onPressed: onPressed,
         icon: Icon(icon, size: 18),
         label: Text(text),
         style: ElevatedButton.styleFrom(
@@ -749,7 +779,7 @@ class _InstructorsCard extends StatelessWidget {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () => showAddInstructorSheet(controller),
                   child: const CircleAvatar(
                     radius: 16,
                     backgroundColor: AppColors.surfaceSubdued,
@@ -767,7 +797,12 @@ class _InstructorsCard extends StatelessWidget {
                   style: TextStyle(color: AppColors.textSecondary),
                 ),
               ),
-            ...instructors.map(_instructorTile),
+            // الضغط على المدرب: إيقاف/تفعيل أو حذف
+            for (var i = 0; i < instructors.length; i++)
+              GestureDetector(
+                onTap: () => showInstructorActions(controller, i),
+                child: _instructorTile(instructors[i]),
+              ),
           ],
         ),
       );
@@ -923,7 +958,7 @@ class _WalletCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton.icon(
-                        onPressed: () {},
+                        onPressed: showPayoutSoon,
                         icon: const Icon(Icons.payments_outlined, size: 18),
                         label: const Text('سحب الأرباح'),
                         style: ElevatedButton.styleFrom(
@@ -963,7 +998,7 @@ class _WalletCard extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () => showTransactionsSheet(controller),
                     child: const Text(
                       'سجل الحركات المالية',
                       style: TextStyle(
@@ -1001,10 +1036,10 @@ class _SettingsCard extends StatelessWidget {
               children: [
                 _SectionIcon(icon: Icons.settings_suggest_outlined),
                 SizedBox(width: 12),
-                Text(
+                Flexible(child: Text(
                   'إعدادات الحساب وسياسات المركز',
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
-                ),
+                )),
               ],
             ),
             const SizedBox(height: AppSizes.space8),

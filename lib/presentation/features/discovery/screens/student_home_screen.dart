@@ -108,7 +108,7 @@ class StudentHomeScreen extends StatelessWidget {
             const SizedBox(height: AppSizes.space16),
             ...controller.latestJobs.asMap().entries.map(
                   (entry) => _padded(_JobCard(job: entry.value, index: entry.key)),
-            ),
+                ),
             const SizedBox(height: AppSizes.space8),
             _padded(
               _SectionHeader(
@@ -128,9 +128,9 @@ class StudentHomeScreen extends StatelessWidget {
   }
 
   Widget _padded(Widget child) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: AppSizes.space24),
-    child: child,
-  );
+        padding: const EdgeInsets.symmetric(horizontal: AppSizes.space24),
+        child: child,
+      );
 }
 
 class _Greeting extends StatelessWidget {
@@ -321,7 +321,11 @@ class _OfferCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
@@ -341,7 +345,6 @@ class _OfferCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const Spacer(),
                     if (days > 0)
                       Text(
                         'ينتهي خلال $days أيام',
@@ -360,7 +363,11 @@ class _OfferCard extends StatelessWidget {
                   style: TextStyle(fontSize: 12, color: AppColors.white.withValues(alpha: 0.85)),
                 ),
                 const SizedBox(height: AppSizes.space16),
-                Row(
+                // Wrap: على الشاشات الضيقة الزر بينزل لسطر جديد بدل ما يطلع برا الكرت
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
                       'كود الخصم',
@@ -383,7 +390,6 @@ class _OfferCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Spacer(),
                     GestureDetector(
                       onTap: onActivate,
                       child: Container(
@@ -518,7 +524,12 @@ class _ServiceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            // Wrap: إذا ما في مكان، الشارة بتنزل تحت الأيقونة بدل ما تنعصر
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Container(
                   width: 40,
@@ -526,8 +537,7 @@ class _ServiceCard extends StatelessWidget {
                   decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),
                   child: Icon(icon, color: AppColors.white, size: 22),
                 ),
-                const Spacer(),
-                Flexible(child: _Badge(text: badge, color: color)),
+                _Badge(text: badge, color: color),
               ],
             ),
             const SizedBox(height: 12),
@@ -539,7 +549,9 @@ class _ServiceCard extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                Text(action, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
+                Flexible(
+                  child: Text(action, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
+                ),
                 const SizedBox(width: 4),
                 Icon(Icons.arrow_forward, size: 14, color: color),
               ],
@@ -781,22 +793,27 @@ class _CourseCard extends StatelessWidget {
             const Spacer(),
             Row(
               children: [
-                Text(
-                  '${StudentHomeController.money(price)} شيكل',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary),
-                ),
-                if (discount > 0) ...[
-                  const SizedBox(width: 6),
-                  Text(
-                    StudentHomeController.money(original),
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textHint,
-                      decoration: TextDecoration.lineThrough,
-                    ),
+                Expanded(
+                  child: Wrap(
+                    spacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        '${StudentHomeController.money(price)} شيكل',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary),
+                      ),
+                      if (discount > 0)
+                        Text(
+                          StudentHomeController.money(original),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textHint,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                    ],
                   ),
-                ],
-                const Spacer(),
+                ),
                 GestureDetector(
                   onTap: onFavorite,
                   child: Container(

@@ -100,10 +100,10 @@ class OrderStatusDialog extends StatelessWidget {
                   children: [
                     Icon(Icons.sync, size: 14, color: AppColors.textSecondary),
                     SizedBox(width: AppSizes.space4),
-                    Text(
+                    Flexible(child: Text(
                       'يتم تحديث حالة الطلب مباشرة',
                       style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                    ),
+                    )),
                   ],
                 ),
                 const SizedBox(height: AppSizes.space16),

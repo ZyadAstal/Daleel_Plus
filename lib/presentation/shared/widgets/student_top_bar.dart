@@ -4,6 +4,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/notifications_screen.dart';
+import '../../features/profile/state/notifications_badge_controller.dart';
 
 class StudentTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
@@ -94,13 +95,18 @@ class _NotificationIcon extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary, size: 24),
+        // النقطة الحمرا بتظهر بس إذا في إشعار غير مقروء
         PositionedDirectional(
           top: -1,
           end: -1,
-          child: Container(
-            width: 8,
-            height: 8,
-            decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+          child: Obx(
+            () => notificationsBadge().unreadCount.value > 0
+                ? Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
+                  )
+                : const SizedBox.shrink(),
           ),
         ),
       ],

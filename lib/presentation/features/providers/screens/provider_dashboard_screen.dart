@@ -11,8 +11,11 @@ import '../widgets/provider_top_bar.dart';
 import '../widgets/quick_action_button.dart';
 import '../widgets/student_request_card.dart';
 import '../widgets/weekly_bookings_chart.dart';
+import '../state/provider_requests_controller.dart';
 import 'provider_profile_screen.dart';
+import 'provider_requests_screen.dart';
 import 'add_service_basic_screen.dart';
+import '../../app_status/screens/system_error_screen.dart';
 
 class ProviderDashboardScreen extends StatelessWidget {
   const ProviderDashboardScreen({super.key});
@@ -39,12 +42,15 @@ class ProviderDashboardScreen extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // إذا صار خطأ: بعد تجهيز شاشة 42 من app_status استبدلي السطر الحالي بـ:
-        // if (controller.errorMessage.value.isNotEmpty) {
-        //   return const UnexpectedErrorScreen(); // شاشة 42 من app_status
-        // }
         if (controller.errorMessage.value.isNotEmpty) {
-          return Center(child: Text(controller.errorMessage.value));
+          return SystemErrorScreen(
+            description: controller.errorMessage.value,
+            showSafetyCard: false,
+            errorDetails: null,
+            apiPath: null,
+            timeoutText: null,
+            onRetry: controller.retry,
+          );
         }
 
         return SingleChildScrollView(
@@ -108,14 +114,17 @@ class _CenterCard extends StatelessWidget {
                 _logo(),
                 const SizedBox(width: 12),
                 Expanded(child: _details()),
-                Container(
-                  width: 32,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceSubdued,
-                    borderRadius: BorderRadius.circular(12),
+                GestureDetector(
+                  onTap: () => Get.off(() => const ProviderProfileScreen()),
+                  child: Container(
+                    width: 32,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceSubdued,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.open_in_new, size: 18, color: AppColors.primary),
                   ),
-                  child: const Icon(Icons.open_in_new, size: 18, color: AppColors.primary),
                 ),
               ],
             ),
@@ -333,7 +342,7 @@ class _NewRequestsBanner extends StatelessWidget {
           ),
           const SizedBox(width: AppSizes.space8),
           GestureDetector(
-            onTap: () {},
+            onTap: () => ProviderRequestsScreen.open(filter: RequestFilter.pending),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
@@ -461,18 +470,22 @@ class _QuickActions extends StatelessWidget {
               isMain: true,
               onTap: () => AddServiceBasicScreen.open(),
             ),
-            QuickActionButton(label: 'المواعيد', icon: Icons.schedule, onTap: () {}),
+            QuickActionButton(
+              label: 'المواعيد',
+              icon: Icons.schedule,
+              onTap: () => Get.off(() => const ProviderProfileScreen(openWorkingHours: true)),
+            ),
             QuickActionButton(
               label: 'سحب الأرباح',
               icon: Icons.account_balance_wallet_outlined,
               iconColor: AppColors.success,
-              onTap: () {},
+              onTap: showPayoutSoon,
             ),
             QuickActionButton(
               label: 'الدعم الفني',
               icon: Icons.headset_mic_outlined,
               iconColor: AppColors.textPrimary,
-              onTap: () {},
+              onTap: openProviderSupport,
             ),
           ],
         ),
@@ -493,10 +506,10 @@ class _LatestRequests extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Text(
+              Expanded(child: const Text(
                 'أحدث طلبات الطلاب',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-              ),
+              )),
               const SizedBox(width: AppSizes.space8),
               if (controller.newOrdersCount.value > 0)
                 Container(
@@ -514,9 +527,10 @@ class _LatestRequests extends StatelessWidget {
                     ),
                   ),
                 ),
-              const Spacer(),
               GestureDetector(
-                onTap: () {},
+                onTap: () => ProviderRequestsScreen.open(
+                  filter: controller.newOrdersCount.value > 0 ? RequestFilter.pending : RequestFilter.active,
+                ),
                 child: const Text(
                   'عرض الكل',
                   style: TextStyle(
@@ -581,7 +595,15 @@ class _LatestRequests extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSizes.space8),
-          Expanded(child: _smallButton(text: 'التفاصيل', onTap: () {})),
+          Expanded(
+            child: _smallButton(
+              text: 'التفاصيل',
+              onTap: () => ProviderRequestsScreen.open(
+                filter: RequestFilter.pending,
+                search: '${order['orderNumber'] ?? ''}',
+              ),
+            ),
+          ),
         ],
       );
     } else if ((status == 'confirmed' || status == 'completed') && isPaid) {
@@ -592,7 +614,10 @@ class _LatestRequests extends StatelessWidget {
       bottom = _smallButton(
         text: 'عرض إيصال السداد ومراسلة الطالب',
         icon: Icons.receipt_long,
-        onTap: () {},
+        onTap: () => ProviderRequestsScreen.open(
+          filter: status == 'completed' ? RequestFilter.completed : RequestFilter.active,
+          search: '${order['orderNumber'] ?? ''}',
+        ),
       );
     } else if (status == 'in_progress') {
       statusColor = AppColors.secondary;

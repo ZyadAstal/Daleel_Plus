@@ -130,14 +130,14 @@ class JobsScreen extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              const Text(
+                              Flexible(child: const Text(
                                 'طلباتي المقدمة',
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w800,
                                   color: AppColors.textPrimary,
                                 ),
-                              ),
+                              )),
                               const SizedBox(width: 6),
                               if (controller.pendingApplications > 0)
                                 _Chip(

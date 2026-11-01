@@ -4,7 +4,7 @@ import '../../../shared/constants/app_colors.dart';
 import '../../../shared/constants/app_sizes.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../providers/state/provider_helpers.dart';
-import '../../providers/widgets/provider_top_bar.dart';
+import '../../../shared/widgets/student_top_bar.dart';
 import '../state/print_order_controller.dart';
 import '../widgets/order_status_dialog.dart';
 
@@ -32,7 +32,7 @@ class PrintOrderScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
-      appBar: const ProviderTopBar(title: 'تفاصيل خدمة الطباعة والتكلفة'),
+      appBar: const StudentTopBar(title: 'تفاصيل خدمة الطباعة والتكلفة'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSizes.space24),
         child: Column(
@@ -770,7 +770,7 @@ class _CostCard extends StatelessWidget {
                   ),
                 ),
                 if (controller.discountPercent > 0)
-                  PrintOrderScreen._chip('خصم خطوتي الجامعي مفعّل', AppColors.success),
+                  PrintOrderScreen._chip('خصم دليل+ الجامعي مفعّل', AppColors.success),
               ],
             ),
             const SizedBox(height: AppSizes.space16),

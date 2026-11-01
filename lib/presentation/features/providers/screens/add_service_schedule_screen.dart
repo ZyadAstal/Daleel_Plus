@@ -32,6 +32,7 @@ class AddServiceScheduleScreen extends StatelessWidget {
         title: controller.isEditing ? 'تعديل الخدمة' : 'إضافة خدمة جديدة',
       ),
       body: SingleChildScrollView(
+        controller: controller.scheduleScroll,
         padding: const EdgeInsets.all(AppSizes.space24),
         child: Column(
           children: [
@@ -62,10 +63,10 @@ class AddServiceScheduleScreen extends StatelessWidget {
               children: [
                 Icon(Icons.cloud_done_outlined, size: 16, color: AppColors.textSecondary),
                 SizedBox(width: 6),
-                Text(
+                Flexible(child: Text(
                   'بياناتك محفوظة مؤقتًا حتى النشر أو الحفظ كمسودة',
                   style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                ),
+                )),
               ],
             ),
           ],
@@ -136,7 +137,7 @@ class _ScheduleSection extends StatelessWidget {
       ),
       children: [
         Obx(
-              () => Row(
+          () => Row(
             children: [
               Expanded(
                 child: _pickerBox(
@@ -161,7 +162,7 @@ class _ScheduleSection extends StatelessWidget {
         const SizedBox(height: AppSizes.space16),
         const FormLabel('أيام الانعقاد الأسبوعية'),
         Obx(
-              () => Column(
+          () => Column(
             children: [
               _daysRow(_days.sublist(0, 3)),
               const SizedBox(height: 10),
@@ -171,7 +172,7 @@ class _ScheduleSection extends StatelessWidget {
         ),
         const SizedBox(height: AppSizes.space16),
         Obx(
-              () => Container(
+          () => Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: AppColors.surfaceSubdued,
@@ -333,13 +334,13 @@ class _LocationSection extends StatelessWidget {
               trailing: city.isEmpty
                   ? null
                   : Text(
-                'فرع $city',
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
-                ),
-              ),
+                      'فرع $city',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
+                    ),
             ),
             FormInput(
               controller: controller.venueController,
@@ -432,7 +433,7 @@ class _RequirementsSection extends StatelessWidget {
       children: [
         const FormLabel('المستوى الأكاديمي / المعرفي'),
         Obx(
-              () => Wrap(
+          () => Wrap(
             spacing: AppSizes.space8,
             runSpacing: AppSizes.space8,
             children: AddServiceController.levels.entries.map((level) {
@@ -462,7 +463,7 @@ class _RequirementsSection extends StatelessWidget {
         const SizedBox(height: AppSizes.space16),
         const FormLabel('الفئات الموجه إليها التدريب'),
         Obx(
-              () => Column(
+          () => Column(
             children: AddServiceController.audienceOptions.entries.map((audience) {
               return FormCheckRow(
                 label: audience.value,
@@ -566,7 +567,7 @@ class _InstructorSection extends StatelessWidget {
               ),
               const SizedBox(height: AppSizes.space16),
               ...controller.instructors.map(
-                    (instructor) => ListTile(
+                (instructor) => ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const CircleAvatar(
                     backgroundColor: AppColors.surfaceSubdued,

@@ -26,8 +26,12 @@ class DaleelApp extends StatelessWidget {
       title: 'Daleel Plus',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      builder: (context, child) =>
-          Directionality(textDirection: TextDirection.rtl, child: child!),
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.1),
+        ),
+        child: Directionality(textDirection: TextDirection.rtl, child: child!),
+      ),
       home: const AuthGate(),
     );
   }

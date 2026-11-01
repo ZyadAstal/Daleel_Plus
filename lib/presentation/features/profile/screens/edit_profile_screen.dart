@@ -112,14 +112,14 @@ class EditProfileScreen extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Text(
+                            Flexible(child: const Text(
                               'اكتمال الملف الشخصي',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.textPrimary,
                               ),
-                            ),
+                            )),
                             const SizedBox(width: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -487,14 +487,14 @@ class EditProfileScreen extends StatelessWidget {
                   : const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
+                        Flexible(child: Text(
                           'حفظ التعديلات',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
                             color: AppColors.white,
                           ),
-                        ),
+                        )),
                         SizedBox(width: 6),
                         Icon(Icons.save_outlined, color: AppColors.white),
                       ],

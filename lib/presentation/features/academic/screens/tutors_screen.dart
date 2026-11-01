@@ -418,8 +418,7 @@ class _TutorCard extends StatelessWidget {
                     '${TutorsController.money(rate)} ₪',
                     style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.primary),
                   ),
-                  const Text(' / ساعة', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                  const Spacer(),
+                  Expanded(child: const Text(' / ساعة', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(22)),

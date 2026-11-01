@@ -228,6 +228,7 @@ class _InfoCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(20)),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
                           width: 7,
@@ -265,10 +266,10 @@ class _InfoCard extends StatelessWidget {
                                 children: [
                                   Icon(Icons.verified, size: 16, color: AppColors.success),
                                   SizedBox(width: 4),
-                                  Text(
+                                  Flexible(child: Text(
                                     'مزود تعليمي وتدريبي مرخص',
                                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.success),
-                                  ),
+                                  )),
                                 ],
                               ),
                             const SizedBox(height: 4),
@@ -426,9 +427,11 @@ class _CourseCard extends StatelessWidget {
               if (hours > 0) ...[
                 const Icon(Icons.schedule, size: 16, color: AppColors.textSecondary),
                 const SizedBox(width: 4),
-                Text('$hours ساعة تدريبية', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Expanded(
+                  child: Text('$hours ساعة تدريبية', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                ),
               ],
-              const Spacer(),
+              if (hours <= 0) const Spacer(),
               GestureDetector(
                 onTap: () => CourseDetailsScreen.open(course['id']),
                 child: Container(

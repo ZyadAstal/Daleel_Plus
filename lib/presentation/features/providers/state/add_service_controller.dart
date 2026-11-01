@@ -11,7 +11,8 @@ class AddServiceController extends GetxController {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   String get providerId => currentProviderId;
-  bool get isEditing => editingCourse != null;
+  // تعديل خدمة موجودة (فيها id). بدون id = خدمة جديدة معبأة مسبقا (مثل فتح شعبة جديدة)
+  bool get isEditing => editingCourse?['id'] != null;
 
   static const Map<String, String> categories = {
     'برمجة وتطوير تقني وحوسبة': 'دورات وتعليم',
@@ -71,6 +72,11 @@ class AddServiceController extends GetxController {
 
   final provider = <String, dynamic>{}.obs;
   final isSaving = false.obs;
+  // أي زر بيحفظ هلق: 'publish' أو 'draft'، عشان التحميل يظهر على الزر الصح
+  final savingAction = ''.obs;
+
+  // سكرول شاشة الجدولة، عشان زر "تعديل الجدولة" يرجع لأولها
+  final scheduleScroll = ScrollController();
 
   double get discountAmount =>
       studentPrice.value > 0 && studentPrice.value < price.value ? price.value - studentPrice.value : 0;
@@ -98,13 +104,13 @@ class AddServiceController extends GetxController {
   void onInit() {
     super.onInit();
     priceController.addListener(
-          () => price.value = double.tryParse(priceController.text) ?? 0,
+      () => price.value = double.tryParse(priceController.text) ?? 0,
     );
     studentPriceController.addListener(
-          () => studentPrice.value = double.tryParse(studentPriceController.text) ?? 0,
+      () => studentPrice.value = double.tryParse(studentPriceController.text) ?? 0,
     );
     _loadProvider();
-    if (isEditing) _fillFromCourse(editingCourse!);
+    if (editingCourse != null) _fillFromCourse(editingCourse!);
   }
 
   @override
@@ -123,6 +129,7 @@ class AddServiceController extends GetxController {
     ]) {
       controller.dispose();
     }
+    scheduleScroll.dispose();
     super.onClose();
   }
 
@@ -295,6 +302,7 @@ class AddServiceController extends GetxController {
   Future<bool> save({required bool publish}) async {
     if (isSaving.value) return false;
     isSaving.value = true;
+    savingAction.value = publish ? 'publish' : 'draft';
 
     try {
       final data = _buildData(publish ? 'published' : 'draft');
@@ -314,10 +322,15 @@ class AddServiceController extends GetxController {
       return true;
     } catch (e) {
       debugPrint('AddServiceController: $e');
-      Get.snackbar('خطأ', 'لم يتم الحفظ، حاول مرة أخرى');
+      final denied = e is FirebaseException && e.code == 'permission-denied';
+      Get.snackbar(
+        'خطأ',
+        denied ? 'حسابك غير مسجل كمقدم خدمة، أكمل بيانات حسابك أولًا' : 'لم يتم الحفظ، حاول مرة أخرى',
+      );
       return false;
     } finally {
       isSaving.value = false;
+      savingAction.value = '';
     }
   }
 

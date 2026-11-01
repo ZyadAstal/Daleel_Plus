@@ -431,14 +431,14 @@ class _InfoCard extends StatelessWidget {
                       ),
                       Row(
                         children: [
-                          Text(
+                          Flexible(child: Text(
                             '${CourseDetailsController.money(controller.price)} ₪',
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
                               color: AppColors.primary,
                             ),
-                          ),
+                          )),
                           if (controller.savedAmount > 0) ...[
                             const SizedBox(width: 6),
                             Text(
@@ -905,14 +905,14 @@ class _BookingBar extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
+                          Flexible(child: Text(
                             buttonText,
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
                               color: AppColors.white,
                             ),
-                          ),
+                          )),
                           if (canBook) ...[
                             const SizedBox(width: 6),
                             const Icon(Icons.arrow_forward, size: 18, color: AppColors.white),

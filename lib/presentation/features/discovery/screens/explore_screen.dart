@@ -609,10 +609,10 @@ class _CourseCard extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        Text(
+                        Flexible(child: Text(
                           '${ExploreController.money(price)} ₪',
                           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.primary),
-                        ),
+                        )),
                         if (discount > 0) ...[
                           const SizedBox(width: 6),
                           Text(
@@ -668,7 +668,7 @@ class _InfoText extends StatelessWidget {
       children: [
         Icon(icon, size: 13, color: AppColors.textSecondary),
         const SizedBox(width: 3),
-        Text(text, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        Flexible(child: Text(text, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
       ],
     );
   }
@@ -842,25 +842,27 @@ class _PrintCenterCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSizes.space16),
-            Row(
+            // Wrap: إذا ما في مكان، الزر بينزل تحت جملة الاستلام بدل ما يعصرها
+            Wrap(
+              spacing: AppSizes.space8,
+              runSpacing: AppSizes.space8,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 if (prepMinutes > 0)
-                  Expanded(
-                    child: Row(
-                      children: [
-                        const Icon(Icons.check_circle_outline, size: 18, color: AppColors.success),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            'استلام فوري خلال $prepMinutes دقيقة',
-                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                          ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle_outline, size: 18, color: AppColors.success),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          'استلام فوري خلال $prepMinutes دقيقة',
+                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                         ),
-                      ],
-                    ),
-                  )
-                else
-                  const Spacer(),
+                      ),
+                    ],
+                  ),
                 GestureDetector(
                   onTap: () => PrintOrderScreen.open(center),
                   child: Container(
