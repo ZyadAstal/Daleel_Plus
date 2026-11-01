@@ -116,7 +116,10 @@ class JobDetailsController extends GetxController {
 
     isSending.value = true;
     try {
-      await _db.collection('jobApplications').add({
+      // التقديم وزيادة عدد المتقدمين مع بعض (batch)، ورقم التقديم = الطالب_الفرصة
+      // فما بينفع يقدّم مرتين، والقواعد بتتأكد إن الزيادة جاية من تقديم حقيقي
+      final batch = _db.batch();
+      batch.set(_db.collection('jobApplications').doc('${currentStudentId}_$jobId'), {
         'jobId': jobId,
         'jobTitle': job['title'] ?? '',
         'companyName': job['companyName'] ?? '',
@@ -130,7 +133,8 @@ class JobDetailsController extends GetxController {
         'status': 'submitted',
         'createdAt': Timestamp.now(),
       });
-      await _db.collection('jobs').doc(jobId).update({'applicantsCount': FieldValue.increment(1)});
+      batch.update(_db.collection('jobs').doc(jobId), {'applicantsCount': FieldValue.increment(1)});
+      await batch.commit();
       return true;
     } catch (e) {
       debugPrint('JobDetailsController: $e');
