@@ -169,6 +169,11 @@ class CheckoutController extends GetxController {
       Get.snackbar('الحجز متوقف', 'هذه الجهة لا تستقبل حجوزات جديدة حاليًا');
       return null;
     }
+    final start = item['startDate'];
+    if (!isSession && start is Timestamp && start.toDate().isBefore(DateTime.now())) {
+      Get.snackbar('الحجز مغلق', 'هذه الدورة بدأت ولا يمكن الحجز فيها');
+      return null;
+    }
     isSending.value = true;
     try {
       if (!isSession) {

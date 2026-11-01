@@ -23,9 +23,12 @@ class ProviderNotificationsController extends GetxController {
 
   // الإشعار غير مقروء إذا وصل (createdAt) بعد آخر مرة فتح فيها الصفحة
   // بنستخدم createdAt مش updatedAt، عشان قبول المزود للطلب ما يرجّع النقطة
+  // (إلا إذا الطالب لغى الطلب: وقتها بنعتمد وقت الإلغاء updatedAt)
   bool isUnread(Map<String, dynamic> item, Timestamp? since) {
-    final created = item['createdAt'] as Timestamp? ?? Timestamp(0, 0);
-    return since == null || created.compareTo(since) > 0;
+    final time = item['canceledBy'] == 'student'
+        ? item['updatedAt'] as Timestamp? ?? Timestamp(0, 0)
+        : item['createdAt'] as Timestamp? ?? Timestamp(0, 0);
+    return since == null || time.compareTo(since) > 0;
   }
 
   // النقطة الحمرا بتظهر بس إذا في إشعار غير مقروء

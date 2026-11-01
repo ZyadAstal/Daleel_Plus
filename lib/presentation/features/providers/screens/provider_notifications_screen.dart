@@ -61,6 +61,7 @@ class _NotificationTile extends StatelessWidget {
   String get _title {
     if (_isReview) return 'تقييم جديد ⭐ ${item['rating'] ?? ''}';
     if (_isNew) return 'طلب حجز جديد';
+    if (item['canceledBy'] == 'student') return 'ألغى الطالب الحجز';
     return 'طلب #${item['orderNumber'] ?? ''} · ${ProviderFormat.orderStatus(item['orderStatus'])}';
   }
 

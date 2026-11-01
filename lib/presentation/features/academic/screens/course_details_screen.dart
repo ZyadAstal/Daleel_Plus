@@ -841,12 +841,14 @@ class _BookingBar extends StatelessWidget {
       final status = controller.orderStatusText;
       final seatsLeft = controller.seatsLeft;
       final isFull = seatsLeft == 0;
-      final canBook = status.isEmpty && !isFull;
+      final started = controller.hasStarted;
+      final canBook = status.isEmpty && !isFull && !started;
       final includes = controller.text('priceIncludes');
 
       String buttonText = 'احجز مقعدك الآن';
       if (status.isNotEmpty) buttonText = status;
       if (status.isEmpty && isFull) buttonText = 'المقاعد ممتلئة';
+      if (status.isEmpty && started) buttonText = 'بدأت الدورة';
 
       return Container(
         padding: const EdgeInsets.fromLTRB(AppSizes.space24, 12, AppSizes.space24, AppSizes.space24),

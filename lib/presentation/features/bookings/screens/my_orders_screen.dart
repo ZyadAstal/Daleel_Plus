@@ -410,6 +410,28 @@ class _OrderCard extends StatelessWidget {
         onTap: order['rescheduleRequested'] == true ? null : () => controller.requestReschedule(order),
       ));
     }
+    if (status == 'pending') {
+      buttons.add(_Button(
+        text: 'إلغاء الحجز',
+        isLight: true,
+        onTap: () => Get.dialog(
+          AlertDialog(
+            title: const Text('إلغاء الحجز', style: TextStyle(fontWeight: FontWeight.w800)),
+            content: Text('هل تريد إلغاء طلب "${order['itemTitle'] ?? ''}"؟'),
+            actions: [
+              TextButton(onPressed: () => Get.back(), child: const Text('تراجع')),
+              TextButton(
+                onPressed: () {
+                  Get.back();
+                  controller.cancelOrder(order);
+                },
+                child: const Text('إلغاء الحجز', style: TextStyle(color: AppColors.error)),
+              ),
+            ],
+          ),
+        ),
+      ));
+    }
     if (status == 'completed' && order['isReviewed'] != true) {
       buttons.add(_Button(
         text: 'تقييم',
